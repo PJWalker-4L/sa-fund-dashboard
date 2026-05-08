@@ -1,0 +1,45 @@
+/* Situational Awareness — dark navy, high-contrast, military-precision */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:         #12161e;
+  --surface:    #181d27;
+  --surface-hi: #1e2435;
+  --border:     #252b3a;
+  --text-1:     #e4e8f0;
+  --text-2:     #8892a8;
+  --text-3:     #6b7590;
+  --green:      #22c55e;
+  --red:        #ef4444;
+  --blue:       #38bdf8;
+  --orange:     #f97316;
+  --yellow:     #fbbf24;
+  --purple:     #a78bfa;
+  --teal:       #2dd4bf;
+  --font:       'Inter', system-ui, sans-serif;
+  --mono:       'JetBrains Mono', 'Fira Code', monospace;
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text-1);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root { min-height: 100vh; display: flex; flex-direction: column; }
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+button { font-family: var(--font); }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.pulse { animation: pulse 1.4s ease-in-out infinite; }

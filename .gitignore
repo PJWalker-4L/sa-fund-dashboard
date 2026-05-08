@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.env
+.env.local
+
+# Data (runtime-generated)
+data/snapshot.json
+data/holdings_cache.json
+data/analysis_cache.json
+data/company_cache.json
+data/alpha_cache.json
+data/win_ca_bundle.pem
+
+# Claude Code
+.claude/
+
+# Node
+node_modules/
+frontend/dist/
+frontend/.vite/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
