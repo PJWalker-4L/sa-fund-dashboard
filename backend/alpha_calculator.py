@@ -1,9 +1,11 @@
 import json
+import os
 import time
 from datetime import date, timedelta
 from pathlib import Path
 
-_CACHE_FILE = Path(__file__).parent.parent / "data" / "alpha_cache.json"
+_DATA_DIR = Path("/tmp/sa-cache") if os.getenv("VERCEL") else Path(__file__).parent.parent / "data"
+_CACHE_FILE = _DATA_DIR / "alpha_cache.json"
 _TTL = 3600  # 1 hour
 
 # Same SSL patch as company_client.py — must run before yfinance import
@@ -29,8 +31,12 @@ def _load_cache() -> dict:
 
 
 def _save_cache(cache: dict) -> None:
-    _CACHE_FILE.parent.mkdir(exist_ok=True)
-    _CACHE_FILE.write_text(json.dumps(cache, indent=2), encoding="utf-8")
+    try:
+        _CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        _CACHE_FILE.write_text(json.dumps(cache, indent=2), encoding="utf-8")
+    except Exception:
+        # Cache is performance-only; never let a write failure break the response.
+        pass
 
 
 def compute_alpha(holdings: list[dict], total_aum: float, period_of_report: str) -> dict:
