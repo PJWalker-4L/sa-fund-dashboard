@@ -25,3 +25,14 @@ export const fetchCompany = (ticker: string): Promise<import('./types').CompanyI
 
 export const fetchStrategy = (): Promise<import('./types').StrategyResponse> =>
   fetch('/api/strategy').then(ok).then(r => r.json())
+
+export const sendChatMessage = (
+  message: string,
+  history: import('./types').ChatMessage[],
+  model: string,
+): Promise<import('./types').ChatResponse> =>
+  fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message, history, model }),
+  }).then(ok).then(r => r.json())

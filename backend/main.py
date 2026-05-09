@@ -13,6 +13,7 @@ from models import (
     HoldingsResponse, AnalysisResponse, FilingMeta, HoldingRow,
     DeltaSummary, BucketAllocation, MoversResponse, MoverItem,
     CompanyInfoResponse, NewsItem, AlphaResponse, StrategyResponse,
+    ChatRequest, ChatResponse,
 )
 
 app = FastAPI(title="SA Fund Dashboard API", version="1.0.0")
@@ -269,6 +270,54 @@ async def get_strategy():
     text, was_cached = await llm_analyzer.analyze_strategy(holdings_dicts, curr_meta)
     filing_key = f"strategy__{curr_meta.get('accession_number', 'curr')}"
     return StrategyResponse(commentary=text, cached=was_cached, filing_key=filing_key)
+
+
+@app.post("/api/chat", response_model=ChatResponse)
+async def chat(req: ChatRequest):
+    try:
+        curr_df, curr_meta, _, _ = _get_data()
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"SEC data fetch failed: {e}")
+
+    holdings_list = [
+        {
+            "ticker": str(row.get("ticker") or ""),
+            "nameOfIssuer": str(row.get("nameOfIssuer", "")),
+            "value": float(row.get("value") or 0),
+            "thesis_role": get_thesis_role(str(row.get("ticker") or ""), str(row.get("nameOfIssuer", ""))),
+        }
+        for _, row in curr_df.iterrows()
+    ]
+    total_aum = sum(h["value"] for h in holdings_list)
+    top15 = sorted(holdings_list, key=lambda h: h["value"], reverse=True)[:15]
+
+    ctx_lines = [
+        f"Filing period: {curr_meta.get('period_of_report', 'unknown')}",
+        f"Total AUM: ~${total_aum / 1_000_000:.1f}B across {len(holdings_list)} positions",
+        "",
+        "TOP 15 HOLDINGS:",
+    ]
+    for h in top15:
+        label = h["ticker"] or h["nameOfIssuer"][:20]
+        pct = h["value"] / total_aum * 100 if total_aum else 0
+        ctx_lines.append(
+            f"  {label} ({h['thesis_role'] or 'Other'}) — ${h['value'] / 1_000_000:.2f}B · {pct:.1f}% AUM"
+        )
+
+    portfolio_context = "\n".join(ctx_lines)
+    history = [{"role": m.role, "content": m.content} for m in req.history]
+
+    try:
+        reply = await llm_analyzer.chat_with_portfolio(
+            message=req.message,
+            history=history,
+            portfolio_context=portfolio_context,
+            model=req.model,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"LLM call failed: {e}")
+
+    return ChatResponse(response=reply)
 
 
 @app.get("/api/company/{ticker}", response_model=CompanyInfoResponse)

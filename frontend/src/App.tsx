@@ -10,6 +10,7 @@ import ThesisInsight from './components/ThesisInsight'
 import DeltaBadge from './components/DeltaBadge'
 import HoldingsTable from './components/HoldingsTable'
 import CompanyDrawer from './components/CompanyDrawer'
+import ChatPanel from './components/ChatPanel'
 import type { HoldingRow } from './types'
 
 export default function App() {
@@ -17,6 +18,7 @@ export default function App() {
   const [selectedTicker, setSelectedTicker] = useState<string | null>(null)
   const [selectedHolding, setSelectedHolding] = useState<HoldingRow | null>(null)
   const [bannerDismissed, setBannerDismissed] = useState<string | null>(null)
+  const [chatOpen, setChatOpen] = useState(false)
   const qc = useQueryClient()
 
   function openDrawer(ticker: string, holding: HoldingRow) {
@@ -124,12 +126,14 @@ export default function App() {
     : '—'
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
       <StatusBar
         meta={data!.meta}
         prevMeta={data!.prev_meta}
         onRefresh={() => refresh.mutate()}
         isRefreshing={refresh.isPending}
+        chatOpen={chatOpen}
+        onChatToggle={() => setChatOpen(o => !o)}
       />
 
       {filingCheck.data?.has_new && bannerDismissed !== filingCheck.data.latest_accession && (
@@ -175,8 +179,11 @@ export default function App() {
         </div>
       )}
 
-      <main style={{
-        flex: 1,
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+        {chatOpen && <ChatPanel onClose={() => setChatOpen(false)} />}
+
+      <main style={{ flex: 1, overflowY: 'auto', minWidth: 0 }}>
+      <div style={{
         padding: '18px 24px',
         display: 'flex',
         flexDirection: 'column',
@@ -300,7 +307,9 @@ export default function App() {
           </div>
           <HoldingsTable holdings={data!.holdings} statusFilter={statusFilter} onTickerClick={handleTickerClick} />
         </div>
+      </div>
       </main>
+      </div>
 
       <CompanyDrawer
         ticker={selectedTicker}

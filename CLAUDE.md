@@ -1,7 +1,19 @@
 # SA Fund Dashboard — CLAUDE.md
 
-# IMPORTANT
-At the start of every session, read the global instructions and safety constraints in `GLOBAL_RULES.md`. These rules are non-negotiable and override local project logic if a conflict arises.
+## KNOWLEDGE SOURCES
+1. `GLOBAL_RULES.md` (Always read at start: Global protocols & safety)
+2. `DECISIONS.md` (DO NOT read entirely at start. Consult this file only when technical justification for existing logic is missing or when making high-impact architectural changes.)
+
+## CURRENT PROJECT STATE
+* **Status:** [Wird von Claude aktualisiert].
+* **Last Decision:** [Wird von Claude aktualisiert].
+* **Next Task:** [Wird von Claude aktualisiert].
+
+---
+
+## IMPORTANT
+At the start of every session, you must read the global instructions and safety constraints in `GLOBAL_RULES.md`. Read the last 5 entries of `DECISIONS.md` to align with the latest architectural state.
+
 
 
 ## SA Fund Dashboard - Was ist das?

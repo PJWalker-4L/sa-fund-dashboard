@@ -162,6 +162,44 @@ async def analyze_strategy(
     return text, False
 
 
+_CHAT_SYSTEM = """\
+You are an analyst assistant for Situational Awareness Partners LP, an AI-infrastructure hedge fund \
+founded by Leopold Aschenbrenner (ex-OpenAI researcher, author of the "Situational Awareness" paper).
+
+FUND PHILOSOPHY:
+- AGI arrives ~2027. SA bets on the physical supply-chain bottlenecks, NOT model companies.
+- SA fades the consensus AI trade (NVDA, MSFT) and buys: Power, Silicon (contrarian), GPU Cloud, \
+AI Infrastructure (miner→HPC arbitrage), Optical Interconnects, Storage.
+- Q4 2025 pivot: sold NVDA/AVGO (priced in) — doubled down on power + infrastructure.
+- Fund: $254M → $5.5B AUM in 12 months. +47% H1 2025 vs S&P +6%.
+- Short book: industries disrupted BY AGI (e.g. IT services like Infosys).
+
+CURRENT PORTFOLIO:
+{portfolio_context}
+
+Answer concisely. Reference tickers and $ amounts where relevant. \
+For companies NOT in the portfolio, reason from the SA thesis about likely exclusion rationale.\
+"""
+
+
+async def chat_with_portfolio(
+    message: str,
+    history: list[dict],
+    portfolio_context: str,
+    model: str = "groq/llama-3.1-8b-instant",
+) -> str:
+    system = _CHAT_SYSTEM.format(portfolio_context=portfolio_context)
+    messages = [{"role": m["role"], "content": m["content"]} for m in history]
+    messages.append({"role": "user", "content": message})
+
+    provider, _, model_name = model.partition("/")
+    if provider == "groq" and _GROQ_KEY:
+        return await _call_groq_chat(messages, system, model_name or "llama-3.1-8b-instant")
+    elif provider == "anthropic" and _ANTHROPIC_KEY:
+        return await _call_anthropic_chat(messages, system, model_name or "claude-haiku-4-5-20251001")
+    return "LLM not available — check your API keys in .env.local."
+
+
 def _ssl_ctx():
     import ssl, truststore
     ctx = truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
@@ -212,6 +250,42 @@ async def _call_anthropic(user_prompt: str, system: str) -> str:
                 "max_tokens": 500,
                 "system": system,
                 "messages": [{"role": "user", "content": user_prompt}],
+            },
+        )
+        r.raise_for_status()
+        return r.json()["content"][0]["text"].strip()
+
+
+async def _call_groq_chat(messages: list[dict], system: str, model: str) -> str:
+    async with httpx.AsyncClient(timeout=30, verify=_ssl_ctx()) as client:
+        r = await client.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers={"Authorization": f"Bearer {_GROQ_KEY}", "Content-Type": "application/json"},
+            json={
+                "model": model,
+                "messages": [{"role": "system", "content": system}] + messages,
+                "max_tokens": 600,
+                "temperature": 0.4,
+            },
+        )
+        r.raise_for_status()
+        return r.json()["choices"][0]["message"]["content"].strip()
+
+
+async def _call_anthropic_chat(messages: list[dict], system: str, model: str) -> str:
+    async with httpx.AsyncClient(timeout=60, verify=_ssl_ctx()) as client:
+        r = await client.post(
+            "https://api.anthropic.com/v1/messages",
+            headers={
+                "x-api-key": _ANTHROPIC_KEY,
+                "anthropic-version": "2023-06-01",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": model,
+                "max_tokens": 600,
+                "system": system,
+                "messages": messages,
             },
         )
         r.raise_for_status()

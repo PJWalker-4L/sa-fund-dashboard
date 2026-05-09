@@ -107,3 +107,18 @@ class StrategyResponse(BaseModel):
     commentary: str
     cached: bool
     filing_key: str
+
+
+class ChatMessage(BaseModel):
+    role: str  # "user" | "assistant"
+    content: str
+
+
+class ChatRequest(BaseModel):
+    message: str
+    history: list[ChatMessage] = []
+    model: str = "groq/llama-3.1-8b-instant"
+
+
+class ChatResponse(BaseModel):
+    response: str

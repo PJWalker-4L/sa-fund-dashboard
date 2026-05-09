@@ -5,9 +5,11 @@ interface Props {
   prevMeta: FilingMeta | null
   onRefresh: () => void
   isRefreshing: boolean
+  chatOpen: boolean
+  onChatToggle: () => void
 }
 
-export default function StatusBar({ meta, prevMeta, onRefresh, isRefreshing }: Props) {
+export default function StatusBar({ meta, prevMeta, onRefresh, isRefreshing, chatOpen, onChatToggle }: Props) {
   const period = prevMeta
     ? `${prevMeta.period_of_report} → ${meta.period_of_report}`
     : meta.period_of_report
@@ -33,23 +35,40 @@ export default function StatusBar({ meta, prevMeta, onRefresh, isRefreshing }: P
           &nbsp;·&nbsp; real prices through last close · filed {meta.filed}
         </div>
       </div>
-      <button
-        onClick={onRefresh}
-        disabled={isRefreshing}
-        style={{
-          padding: '5px 14px',
-          background: 'var(--surface-hi)',
-          border: '1px solid var(--border)',
-          color: isRefreshing ? 'var(--text-3)' : 'var(--text-2)',
-          borderRadius: 4,
-          cursor: isRefreshing ? 'not-allowed' : 'pointer',
-          fontSize: 11,
-          letterSpacing: '0.03em',
-          transition: 'color 0.15s',
-        }}
-      >
-        {isRefreshing ? 'Refreshing…' : '↻  Refresh Data'}
-      </button>
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button
+          onClick={onChatToggle}
+          style={{
+            padding: '5px 14px',
+            background: chatOpen ? 'var(--blue)' : 'var(--surface-hi)',
+            border: '1px solid var(--border)',
+            color: chatOpen ? '#fff' : 'var(--text-2)',
+            borderRadius: 4,
+            cursor: 'pointer',
+            fontSize: 11,
+            letterSpacing: '0.03em',
+          }}
+        >
+          ✦  Chat
+        </button>
+        <button
+          onClick={onRefresh}
+          disabled={isRefreshing}
+          style={{
+            padding: '5px 14px',
+            background: 'var(--surface-hi)',
+            border: '1px solid var(--border)',
+            color: isRefreshing ? 'var(--text-3)' : 'var(--text-2)',
+            borderRadius: 4,
+            cursor: isRefreshing ? 'not-allowed' : 'pointer',
+            fontSize: 11,
+            letterSpacing: '0.03em',
+            transition: 'color 0.15s',
+          }}
+        >
+          {isRefreshing ? 'Refreshing…' : '↻  Refresh Data'}
+        </button>
+      </div>
     </header>
   )
 }

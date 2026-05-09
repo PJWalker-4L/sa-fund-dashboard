@@ -112,3 +112,12 @@ export interface StrategyResponse {
   cached: boolean
   filing_key: string
 }
+
+export interface ChatMessage {
+  role: 'user' | 'assistant'
+  content: string
+}
+
+export interface ChatResponse {
+  response: string
+}
