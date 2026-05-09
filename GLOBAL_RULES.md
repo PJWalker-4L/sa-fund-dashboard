@@ -1,0 +1,1 @@
+C:/Claude/projects/GLOBAL_RULES.md

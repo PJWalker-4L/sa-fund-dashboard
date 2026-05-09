@@ -1,19 +1,18 @@
 # SA Fund Dashboard — CLAUDE.md
 
 ## KNOWLEDGE SOURCES
-1. `GLOBAL_RULES.md` (Always read at start: Global protocols & safety)
-2. `DECISIONS.md` (DO NOT read entirely at start. Consult this file only when technical justification for existing logic is missing or when making high-impact architectural changes.)
+1. `GLOBAL_RULES.md` (Global protocols & safety: Always read at start)
+2. `DECISIONS.md` (Local project history & architecture: DO NOT read entirely at start. Consult this file only when technical justification for existing logic is missing or when making high-impact architectural changes.)
 
 ## CURRENT PROJECT STATE
-* **Status:** [Wird von Claude aktualisiert].
-* **Last Decision:** [Wird von Claude aktualisiert].
-* **Next Task:** [Wird von Claude aktualisiert].
+* **Status:** Chat-Feature implementiert (Backend + Frontend fertig, bereit zum Test).
+* **Active Tech Stack:** FastAPI + React/Vite/TS · Groq (llama-8b/70b) + Anthropic (Haiku/Sonnet) · edgartools SEC EDGAR.
+* **Recent Major Change:** POST /api/chat Endpoint + ChatPanel Sidebar (links, ausklappbar via StatusBar-Toggle).
 
 ---
 
 ## IMPORTANT
-At the start of every session, you must read the global instructions and safety constraints in `GLOBAL_RULES.md`. Read the last 5 entries of `DECISIONS.md` to align with the latest architectural state.
-
+At the start of every session, read the global instructions and safety constraints in `GLOBAL_RULES.md`. These rules are non-negotiable and override local project logic if a conflict arises.
 
 
 ## SA Fund Dashboard - Was ist das?
