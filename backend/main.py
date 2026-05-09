@@ -1,5 +1,7 @@
-from fastapi import FastAPI, HTTPException
+import traceback as _tb
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 import pandas as pd
 
 import sec_client
@@ -24,6 +26,22 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(Exception)
+async def _log_unhandled(request: Request, exc: Exception):
+    tb = _tb.format_exc()
+    print(f"[UNHANDLED] {request.method} {request.url.path}\n{tb}", flush=True)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": f"{type(exc).__name__}: {exc}", "traceback": tb},
+    )
+
+
+def _http_503(prefix: str, exc: Exception) -> HTTPException:
+    tb = _tb.format_exc()
+    print(f"[503] {prefix}\n{tb}", flush=True)
+    return HTTPException(status_code=503, detail=f"{prefix}: {type(exc).__name__}: {exc}")
 
 
 def _fetch_live():
@@ -137,7 +155,7 @@ async def get_holdings():
     try:
         curr_df, curr_meta, prev_df, prev_meta = _get_data()
     except Exception as e:
-        raise HTTPException(status_code=503, detail=f"SEC data fetch failed: {e}")
+        raise _http_503("SEC data fetch failed", e)
     return _build_holdings_response(curr_df, curr_meta, prev_df, prev_meta)
 
 
@@ -146,7 +164,7 @@ async def get_analysis():
     try:
         curr_df, curr_meta, prev_df, prev_meta = _get_data()
     except Exception as e:
-        raise HTTPException(status_code=503, detail=f"SEC data fetch failed: {e}")
+        raise _http_503("SEC data fetch failed", e)
 
     delta = delta_detector.compute_delta(curr_df, prev_df)
     filing_pair = (
@@ -170,7 +188,7 @@ async def check_new_filing():
     try:
         latest = sec_client.get_latest_meta()
     except Exception as e:
-        raise HTTPException(status_code=503, detail=f"SEC EDGAR check failed: {e}")
+        raise _http_503("SEC EDGAR check failed", e)
 
     cached = state_manager.load_holdings_cache()
     current_accession = cached[1].get("accession_number", "") if cached else ""
@@ -195,7 +213,7 @@ async def refresh():
         _, curr_meta, _, _ = _fetch_live()
         return {"status": "refreshed", "period": curr_meta["period_of_report"]}
     except Exception as e:
-        raise HTTPException(status_code=503, detail=f"SEC data fetch failed: {e}")
+        raise _http_503("SEC data fetch failed", e)
 
 
 @app.get("/api/movers", response_model=MoversResponse)
@@ -203,7 +221,7 @@ async def get_movers():
     try:
         curr_df, curr_meta, prev_df, prev_meta = _get_data()
     except Exception as e:
-        raise HTTPException(status_code=503, detail=f"SEC data fetch failed: {e}")
+        raise _http_503("SEC data fetch failed", e)
 
     delta = delta_detector.compute_delta(curr_df, prev_df)
 
@@ -238,7 +256,7 @@ async def get_alpha():
     try:
         curr_df, curr_meta, _, _ = _get_data()
     except Exception as e:
-        raise HTTPException(status_code=503, detail=f"SEC data fetch failed: {e}")
+        raise _http_503("SEC data fetch failed", e)
 
     holdings = [
         {"ticker": str(row.get("ticker") or ""), "value": float(row.get("value") or 0)}
@@ -255,7 +273,7 @@ async def get_strategy():
     try:
         curr_df, curr_meta, _, _ = _get_data()
     except Exception as e:
-        raise HTTPException(status_code=503, detail=f"SEC data fetch failed: {e}")
+        raise _http_503("SEC data fetch failed", e)
 
     holdings_dicts = [
         {
@@ -277,7 +295,7 @@ async def chat(req: ChatRequest):
     try:
         curr_df, curr_meta, _, _ = _get_data()
     except Exception as e:
-        raise HTTPException(status_code=503, detail=f"SEC data fetch failed: {e}")
+        raise _http_503("SEC data fetch failed", e)
 
     holdings_list = [
         {
