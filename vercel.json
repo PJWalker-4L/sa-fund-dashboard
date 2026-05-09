@@ -13,8 +13,7 @@
   ],
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/index.py" },
-    { "src": "/assets/(.*)", "dest": "/assets/$1" },
-    { "src": "/(.+\\.(js|css|svg|png|jpg|jpeg|ico|json|woff|woff2|ttf|map|webp))", "dest": "/$1" },
-    { "src": "/(.*)", "dest": "/index.html" }
+    { "src": "/(.+\\.(js|css|svg|png|jpg|jpeg|ico|json|woff|woff2|ttf|eot|otf|map|webp|html|txt|xml))", "dest": "/frontend/$1" },
+    { "src": "/(.*)", "dest": "/frontend/index.html" }
   ]
 }
