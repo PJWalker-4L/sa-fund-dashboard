@@ -1,0 +1,11 @@
+# Ignoriere den ungültigen Symlink
+GLOBAL_RULES.md
+DECISIONS.md
+
+# Ignoriere lokale Abhängigkeiten und Caches
+node_modules/
+.venv/
+__pycache__/
+.pytest_cache/
+frontend/node_modules/
+dist/
