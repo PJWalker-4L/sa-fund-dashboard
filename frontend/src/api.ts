@@ -22,3 +22,6 @@ export const checkNewFiling = (): Promise<import('./types').NewFilingCheck> =>
 
 export const fetchCompany = (ticker: string): Promise<import('./types').CompanyInfo> =>
   fetch(`/api/company/${ticker}`).then(ok).then(r => r.json())
+
+export const fetchStrategy = (): Promise<import('./types').StrategyResponse> =>
+  fetch('/api/strategy').then(ok).then(r => r.json())

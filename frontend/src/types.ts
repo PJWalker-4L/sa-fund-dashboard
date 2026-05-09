@@ -12,6 +12,7 @@ export interface HoldingRow {
   shares_change: number | null
   pct_change: number | null
   bucket: string | null
+  thesis_role: string | null
 }
 
 export interface DeltaSummary {
@@ -104,4 +105,10 @@ export interface MoversResponse {
   gainers: MoverItem[]
   losers: MoverItem[]
   period: string
+}
+
+export interface StrategyResponse {
+  commentary: string
+  cached: boolean
+  filing_key: string
 }

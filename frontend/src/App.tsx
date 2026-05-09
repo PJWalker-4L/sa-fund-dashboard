@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { fetchHoldings, fetchAnalysis, fetchMovers, triggerRefresh, fetchAlpha, checkNewFiling } from './api'
+import { fetchHoldings, fetchAnalysis, fetchMovers, triggerRefresh, fetchAlpha, checkNewFiling, fetchStrategy } from './api'
 import StatusBar from './components/StatusBar'
 import KPICard from './components/KPICard'
 import BucketChart from './components/BucketChart'
 import MoversPanel from './components/MoversPanel'
 import LLMInsight from './components/LLMInsight'
+import ThesisInsight from './components/ThesisInsight'
 import DeltaBadge from './components/DeltaBadge'
 import HoldingsTable from './components/HoldingsTable'
 import CompanyDrawer from './components/CompanyDrawer'
@@ -54,6 +55,12 @@ export default function App() {
     queryKey: ['alpha'],
     queryFn: fetchAlpha,
     staleTime: 60 * 60_000,
+    enabled: !!data,
+  })
+  const strategyQuery = useQuery({
+    queryKey: ['strategy'],
+    queryFn: fetchStrategy,
+    staleTime: Infinity,
     enabled: !!data,
   })
   const filingCheck = useQuery({
@@ -252,6 +259,14 @@ export default function App() {
           data={analysis.data}
           isLoading={analysis.isLoading}
           onRefresh={() => qc.invalidateQueries({ queryKey: ['analysis'] })}
+        />
+
+        {/* Thesis Stack */}
+        <ThesisInsight
+          holdings={data!.holdings}
+          strategy={strategyQuery.data}
+          isLoading={strategyQuery.isLoading}
+          onRefresh={() => qc.invalidateQueries({ queryKey: ['strategy'] })}
         />
 
         {/* Holdings Table */}

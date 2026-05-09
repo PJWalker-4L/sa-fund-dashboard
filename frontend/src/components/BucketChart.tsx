@@ -173,11 +173,12 @@ export default function BucketChart({ buckets, holdings, topN = 10, onPositionCl
           overflowY: 'auto',
         }}>
           {data.map((d) => {
-            const clickable = mode === 'positions' && onPositionClick && d.ticker && d.holding
+            const pd = d as { name: string; ticker?: string | null; holding?: HoldingRow | null }
+            const clickable = mode === 'positions' && onPositionClick && pd.ticker && pd.holding
             return (
               <div
                 key={d.name}
-                onClick={clickable ? () => onPositionClick!(d.ticker!, d.holding!) : undefined}
+                onClick={clickable ? () => onPositionClick!(pd.ticker!, pd.holding!) : undefined}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 7,
                   cursor: clickable ? 'pointer' : 'default',

@@ -8,11 +8,11 @@ import state_manager
 import llm_analyzer
 import company_client
 import alpha_calculator
-from sectors import classify
+from sectors import classify, thesis_role as get_thesis_role
 from models import (
     HoldingsResponse, AnalysisResponse, FilingMeta, HoldingRow,
     DeltaSummary, BucketAllocation, MoversResponse, MoverItem,
-    CompanyInfoResponse, NewsItem, AlphaResponse,
+    CompanyInfoResponse, NewsItem, AlphaResponse, StrategyResponse,
 )
 
 app = FastAPI(title="SA Fund Dashboard API", version="1.0.0")
@@ -90,6 +90,7 @@ def _build_holdings_response(
             shares_change=di["shares_change"],
             pct_change=di["pct_change"],
             bucket=classify(str(rd.get("ticker") or ""), str(rd.get("nameOfIssuer", ""))),
+            thesis_role=get_thesis_role(str(rd.get("ticker") or ""), str(rd.get("nameOfIssuer", ""))),
         ))
 
     holdings.sort(key=lambda h: h.value, reverse=True)
@@ -188,6 +189,7 @@ async def check_new_filing():
 @app.post("/api/refresh")
 async def refresh():
     state_manager.invalidate_holdings_cache()
+    state_manager.invalidate_strategy_cache()
     try:
         _, curr_meta, _, _ = _fetch_live()
         return {"status": "refreshed", "period": curr_meta["period_of_report"]}
@@ -245,6 +247,28 @@ async def get_alpha():
     total_aum = float(curr_df["value"].sum()) if "value" in curr_df.columns else 0.0
     result = alpha_calculator.compute_alpha(holdings, total_aum, curr_meta["period_of_report"])
     return AlphaResponse(**result)
+
+
+@app.get("/api/strategy", response_model=StrategyResponse)
+async def get_strategy():
+    try:
+        curr_df, curr_meta, _, _ = _get_data()
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"SEC data fetch failed: {e}")
+
+    holdings_dicts = [
+        {
+            "ticker": str(row.get("ticker") or ""),
+            "nameOfIssuer": str(row.get("nameOfIssuer", "")),
+            "value": float(row.get("value") or 0),
+            "thesis_role": get_thesis_role(str(row.get("ticker") or ""), str(row.get("nameOfIssuer", ""))),
+        }
+        for _, row in curr_df.iterrows()
+    ]
+
+    text, was_cached = await llm_analyzer.analyze_strategy(holdings_dicts, curr_meta)
+    filing_key = f"strategy__{curr_meta.get('accession_number', 'curr')}"
+    return StrategyResponse(commentary=text, cached=was_cached, filing_key=filing_key)
 
 
 @app.get("/api/company/{ticker}", response_model=CompanyInfoResponse)

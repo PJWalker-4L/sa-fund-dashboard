@@ -16,6 +16,7 @@ class HoldingRow(BaseModel):
     shares_change: Optional[float] = None
     pct_change: Optional[float] = None
     bucket: Optional[str] = None
+    thesis_role: Optional[str] = None
 
 
 class DeltaSummary(BaseModel):
@@ -100,3 +101,9 @@ class MoversResponse(BaseModel):
     gainers: list[MoverItem]
     losers: list[MoverItem]
     period: str
+
+
+class StrategyResponse(BaseModel):
+    commentary: str
+    cached: bool
+    filing_key: str

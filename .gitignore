@@ -13,6 +13,7 @@ data/holdings_cache.json
 data/analysis_cache.json
 data/company_cache.json
 data/alpha_cache.json
+data/strategy_cache.json
 data/win_ca_bundle.pem
 
 # Claude Code
@@ -22,6 +23,7 @@ data/win_ca_bundle.pem
 node_modules/
 frontend/dist/
 frontend/.vite/
+frontend/tsconfig.tsbuildinfo
 
 # OS
 .DS_Store

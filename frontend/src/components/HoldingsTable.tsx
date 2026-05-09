@@ -42,6 +42,7 @@ function PctCell({ h }: { h: HoldingRow }) {
 }
 
 export default function HoldingsTable({ holdings, statusFilter, onTickerClick }: Props) {
+  const totalAum = useMemo(() => holdings.reduce((s, h) => s + h.value, 0), [holdings])
   const [sortKey, setSortKey] = useState<SortKey>('value')
   const [sortDir, setSortDir] = useState<1 | -1>(-1)
 
@@ -96,6 +97,9 @@ export default function HoldingsTable({ holdings, statusFilter, onTickerClick }:
             </th>
             <Th k="sshPrnamt" label="SHARES" align="right" />
             <Th k="value" label="VALUE" align="right" />
+            <th style={{ padding: '8px 12px', fontSize: 10, color: 'var(--text-2)', letterSpacing: '0.08em', borderBottom: '1px solid var(--border)', textAlign: 'right', whiteSpace: 'nowrap' }}>
+              % AUM
+            </th>
             <Th k="pct_change" label="Δ QoQ" align="right" />
           </tr>
         </thead>
@@ -169,6 +173,9 @@ export default function HoldingsTable({ holdings, statusFilter, onTickerClick }:
                 </td>
                 <td style={{ padding: '7px 12px', fontFamily: 'var(--mono)', fontSize: 12, textAlign: 'right' }}>
                   {fmtValue(h.value)}
+                </td>
+                <td style={{ padding: '7px 12px', fontFamily: 'var(--mono)', fontSize: 12, textAlign: 'right', color: 'var(--text-2)' }}>
+                  {totalAum > 0 ? (h.value / totalAum * 100).toFixed(1) + '%' : '—'}
                 </td>
                 <td style={{ padding: '7px 12px', textAlign: 'right' }}>
                   <PctCell h={h} />
