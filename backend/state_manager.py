@@ -1,10 +1,11 @@
 import json
+import os
 import time
 import pandas as pd
 from pathlib import Path
 from typing import Optional
 
-_DATA = Path(__file__).parent.parent / "data"
+_DATA = Path("/tmp/sa-cache") if os.getenv("VERCEL") else Path(__file__).parent.parent / "data"
 _HOLDINGS_CACHE = _DATA / "holdings_cache.json"
 _ANALYSIS_CACHE = _DATA / "analysis_cache.json"
 _STRATEGY_CACHE = _DATA / "strategy_cache.json"
