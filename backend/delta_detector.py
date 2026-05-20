@@ -1,9 +1,12 @@
 import pandas as pd
 from typing import Optional
 
+from state_manager import normalize_put_call
+
 
 def _key(row: dict) -> str:
-    return f"{row.get('cusip', '')}_{row.get('putCall') or 'SHARE'}"
+    pc = normalize_put_call(row.get("putCall")) or "SHARE"
+    return f"{row.get('cusip', '')}_{pc}"
 
 
 def compute_delta(
@@ -34,14 +37,16 @@ def compute_delta(
         row = {**curr_map[k], "status": "NEW",
                "value_change": float(curr_map[k].get("value") or 0),
                "shares_change": float(curr_map[k].get("sshPrnamt") or 0),
-               "pct_change": None}
+               "pct_change": None,
+               "putCall": normalize_put_call(curr_map[k].get("putCall"))}
         result["new"].append(row)
 
     for k in prev_keys - curr_keys:
         row = {**prev_map[k], "status": "CLOSED",
                "value_change": -float(prev_map[k].get("value") or 0),
                "shares_change": -float(prev_map[k].get("sshPrnamt") or 0),
-               "pct_change": -100.0}
+               "pct_change": -100.0,
+               "putCall": normalize_put_call(prev_map[k].get("putCall"))}
         result["closed"].append(row)
 
     for k in curr_keys & prev_keys:
@@ -54,7 +59,8 @@ def compute_delta(
         val_delta = c_val - p_val
         pct = round(((c_sh / p_sh) - 1) * 100, 2) if p_sh else 0.0
 
-        row = {**c, "value_change": val_delta, "shares_change": sh_delta, "pct_change": pct}
+        row = {**c, "value_change": val_delta, "shares_change": sh_delta, "pct_change": pct,
+               "putCall": normalize_put_call(c.get("putCall"))}
 
         if abs(pct) < 0.5:
             row["status"] = "UNCHANGED"

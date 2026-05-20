@@ -117,9 +117,9 @@ export default function App() {
     )
   }
 
-  const topShortLabel = data!.put_count > 0
+  const topPutLabel = data!.put_count > 0
     ? `${data!.put_count} put position${data!.put_count !== 1 ? 's' : ''}`
-    : 'no active shorts'
+    : 'no put options'
 
   const topName = data!.top_holding_name
     ? data!.top_holding_name.split(' ').slice(0, 3).join(' ')
@@ -229,9 +229,9 @@ export default function App() {
             accent
           />
           <KPICard
-            label="Active Shorts"
+            label="Put Options"
             value={String(data!.put_count)}
-            sub={topShortLabel}
+            sub={topPutLabel}
           />
           <KPICard
             label="Call Options"
@@ -245,6 +245,22 @@ export default function App() {
           <BucketChart buckets={data!.buckets} holdings={data!.holdings} onPositionClick={openDrawer} />
           {movers.data
             ? <MoversPanel data={movers.data} onTickerClick={handleTickerClick} />
+            : movers.isError
+            ? (
+              <div style={{
+                background: 'var(--surface)',
+                border: '1px solid var(--border)',
+                borderRadius: 6,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: 16,
+              }}>
+                <span style={{ color: 'var(--red)', fontSize: 12 }}>
+                  Movers failed to load
+                </span>
+              </div>
+            )
             : (
               <div style={{
                 background: 'var(--surface)',

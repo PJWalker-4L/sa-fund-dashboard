@@ -70,7 +70,7 @@ def _build_holdings_response(
     delta_lookup: dict[str, dict] = {}
     for status_key in ("new", "closed", "increased", "decreased", "unchanged"):
         for pos in delta.get(status_key, []):
-            k = f"{pos.get('cusip', '')}_{pos.get('putCall') or 'SHARE'}"
+            k = f"{pos.get('cusip', '')}_{state_manager.normalize_put_call(pos.get('putCall')) or 'SHARE'}"
             delta_lookup[k] = {
                 "status": pos.get("status"),
                 "value_change": pos.get("value_change"),
@@ -84,11 +84,11 @@ def _build_holdings_response(
 
     for _, row in curr_df.iterrows():
         rd = row.to_dict()
-        k = f"{rd.get('cusip', '')}_{rd.get('putCall') or 'SHARE'}"
+        k = f"{rd.get('cusip', '')}_{state_manager.normalize_put_call(rd.get('putCall')) or 'SHARE'}"
         di = delta_lookup.get(k, {"status": "UNCHANGED", "value_change": 0.0, "shares_change": 0.0, "pct_change": 0.0})
         val = float(rd.get("value") or 0)
         total_value += val
-        put_call = rd.get("putCall") or None
+        put_call = state_manager.normalize_put_call(rd.get("putCall"))
         if put_call == "Call":
             call_count += 1
         elif put_call == "Put":
@@ -235,7 +235,7 @@ async def get_movers():
                 issuer=str(pos.get("nameOfIssuer", ""))[:24],
                 cusip=str(pos.get("cusip", "")),
                 ticker=str(pos.get("ticker") or "") or None,
-                putCall=pos.get("putCall"),
+                putCall=state_manager.normalize_put_call(pos.get("putCall")),
                 pct_change=round(float(pct), 2),
                 value_change_thousands=float(pos.get("value_change") or 0),
             ))

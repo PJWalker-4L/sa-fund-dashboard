@@ -7,6 +7,11 @@ env/
 .env
 .env.local
 
+# Lokaler KI-Kontext (Nicht auf GitHub pushen)
+CLAUDE.md
+GLOBAL_RULES.md
+DECISIONS.md
+
 # Data (runtime-generated)
 data/snapshot.json
 data/holdings_cache.json
@@ -32,4 +37,5 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
-GLOBAL_RULES.md
+
+.vercel
