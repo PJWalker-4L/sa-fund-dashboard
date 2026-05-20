@@ -11,6 +11,49 @@ function abbrev(name: string, max = 16): string {
   return name.slice(0, max)
 }
 
+const BADGE_BASE: React.CSSProperties = {
+  fontSize: 9,
+  padding: '1px 5px',
+  borderRadius: 3,
+  fontWeight: 700,
+  letterSpacing: '0.04em',
+}
+
+function LegendBadge({ label, variant }: { label: string; variant: 'share' | 'call' | 'put' }) {
+  const styles: Record<typeof variant, React.CSSProperties> = {
+    share: { background: 'var(--surface-hi)', color: 'var(--text-3)' },
+    call: { background: 'rgba(56,189,248,0.12)', color: 'var(--blue)' },
+    put: { background: 'rgba(249,115,22,0.12)', color: 'var(--orange)' },
+  }
+  return <span style={{ ...BADGE_BASE, ...styles[variant] }}>{label}</span>
+}
+
+function InstrumentLegend() {
+  return (
+    <div style={{
+      display: 'flex',
+      flexWrap: 'wrap',
+      alignItems: 'center',
+      gap: '6px 12px',
+      marginTop: 12,
+      paddingTop: 10,
+      borderTop: '1px solid var(--border)',
+      fontSize: 9,
+      color: 'var(--text-3)',
+      letterSpacing: '0.03em',
+    }}>
+      <LegendBadge label="SH" variant="share" />
+      <span>Shares</span>
+      <span style={{ color: 'var(--border)' }}>·</span>
+      <LegendBadge label="CALL" variant="call" />
+      <span>Call option</span>
+      <span style={{ color: 'var(--border)' }}>·</span>
+      <LegendBadge label="PUT" variant="put" />
+      <span>Put option</span>
+    </div>
+  )
+}
+
 function MoverRow({ item, isGainer, onTickerClick }: { item: MoverItem; isGainer: boolean; onTickerClick?: (t: string) => void }) {
   const color = isGainer ? 'var(--green)' : 'var(--red)'
   const sign = isGainer ? '+' : ''
@@ -92,6 +135,7 @@ export default function MoversPanel({ data, onTickerClick }: Props) {
               ))}
         </div>
       </div>
+      <InstrumentLegend />
     </div>
   )
 }

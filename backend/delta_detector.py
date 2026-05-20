@@ -3,6 +3,15 @@ from typing import Optional
 
 from state_manager import normalize_put_call
 
+# Positions below this notional ($ thousands) in the prior quarter are treated as stubs.
+MIN_BASE_VALUE = 10.0
+
+
+def _pct_change(c_val: float, p_val: float) -> Optional[float]:
+    if p_val <= MIN_BASE_VALUE:
+        return None
+    return round(((c_val / p_val) - 1) * 100, 2)
+
 
 def _key(row: dict) -> str:
     pc = normalize_put_call(row.get("putCall")) or "SHARE"
@@ -57,15 +66,18 @@ def compute_delta(
         p_val = float(p.get("value") or 0)
         sh_delta = c_sh - p_sh
         val_delta = c_val - p_val
-        pct = round(((c_sh / p_sh) - 1) * 100, 2) if p_sh else 0.0
+        pct = _pct_change(c_val, p_val)
 
         row = {**c, "value_change": val_delta, "shares_change": sh_delta, "pct_change": pct,
                "putCall": normalize_put_call(c.get("putCall"))}
 
-        if abs(pct) < 0.5:
+        if pct is None:
+            row["status"] = "NEW"
+            result["new"].append(row)
+        elif abs(pct) < 0.5:
             row["status"] = "UNCHANGED"
             result["unchanged"].append(row)
-        elif c_sh > p_sh:
+        elif c_val > p_val:
             row["status"] = "INCREASED"
             result["increased"].append(row)
         else:

@@ -15,20 +15,30 @@ _ANTHROPIC_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 
 _SYSTEM = (
     "You are a terse hedge fund analyst. Maximum 200 words. "
-    "Be specific about tickers and position sizes — no generic commentary."
+    "Be specific about tickers and position sizes — no generic commentary. "
+    "13F instrument types: SHARE = long equity, CALL = bullish option, PUT = bearish/short option. "
+    "CRITICAL: PUT positions are bearish bets, NOT long exposure. "
+    "A large PUT position in NVDA means the fund is SHORT NVDA, not long. "
+    "Never call PUT holders 'concentrated in' a sector as if long — they are expressing bearish views. "
+    "In the Risk Note: distinguish put exposure (bearish/short) from share/call exposure (bullish/long). "
+    "Example Risk Note for a put-heavy book: 'Tail risk: if NVDA/AMD rally sharply, large put notional (~$Xb) faces mark-to-market losses.' "
+    "Never say 'concentration in semiconductor stocks' when the positions are mostly puts."
 )
 
 _USER_TEMPLATE = """\
 Fund: Situational Awareness Partners LP (Leopold Aschenbrenner — AI + energy infrastructure focus)
 Period: {prev_period} → {curr_period}
 
+Instrument mix this quarter:
+{instrument_mix}
+
 Position changes ({n} positions, UNCHANGED excluded):
 {delta_csv}
 
 Analyze concisely:
-1. Key strategic themes
+1. Key strategic themes (distinguish puts=bearish from shares/calls=bullish)
 2. Most significant individual moves
-3. One-line risk note"""
+3. Risk Note: frame put exposure as bearish/short, NOT as sector concentration risk"""
 
 _STRATEGY_SYSTEM = """\
 You are a senior analyst at Situational Awareness Partners LP, an AI-infrastructure hedge fund founded by Leopold Aschenbrenner (ex-OpenAI researcher, author of the "Situational Awareness" paper).
@@ -48,7 +58,10 @@ THE BOTTLENECK LAYERS (order = current binding criticality per SA paper):
 5. OPTICAL — Lumentum (LITE), Coherent (COHR). Hidden bottleneck: terabit-scale fiber interconnects between GPU clusters. Underowned by consensus.
 6. STORAGE — SanDisk (SNDK), WDC, STX. AI training checkpoints and data lakes require massive persistent storage.
 
-SHORT BOOK: SA shorts industries being disrupted by AGI (e.g. IT services: Infosys), NOT the AI enablers.
+SHORT BOOK & PUT OPTIONS (critical — read carefully):
+- 13F put options are BEARISH expression, NOT long equity. Large put notional on a ticker means the fund is betting against or hedging that name — never describe puts as "conviction" or "top holdings in the industry."
+- Q1 2026 example: SA held multi-billion-dollar puts on SMH, NVDA, AVGO, AMD, MU, ORCL, ASML, TSM, INTC, GLW — a macro short against the consensus semiconductor trade while staying long power/infrastructure.
+- Shares and calls = bullish expression. Puts = bearish expression. Always state the instrument type when citing a position.
 
 Write exactly 3 labeled paragraphs, max 230 words total:
 ▸ CONVICTION: Which layer(s) dominate by AUM weight? Is this consistent with SA's known thesis priorities and the current bottleneck order?
@@ -60,23 +73,68 @@ _STRATEGY_TEMPLATE = """\
 Situational Awareness Partners LP — {period} filing
 AUM: ~${aum_b:.1f}B across {n_holdings} positions
 
-ALLOCATION BY THESIS LAYER:
+INSTRUMENT MIX (by 13F notional):
+{instrument_mix}
+
+ALLOCATION BY THESIS LAYER (notional includes puts — interpret puts as bearish):
 {layer_table}
 
-TOP HOLDINGS BY VALUE:
+TOP PUT POSITIONS (bearish expression):
+{put_book}
+
+TOP HOLDINGS BY VALUE (instrument type shown):
 {top_holdings}
 
-Write the CONVICTION / GAPS / SIGNAL analysis.\
+Write the CONVICTION / GAPS / SIGNAL analysis. Always distinguish SHARE/CALL (bullish) from PUT (bearish).\
 """
 
 
+def _instrument_type(h: dict) -> str:
+    pc = h.get("putCall")
+    if pc == "Put":
+        return "PUT"
+    if pc == "Call":
+        return "CALL"
+    return "SHARE"
+
+
+def _holding_line(h: dict, total_aum: float) -> str:
+    ticker = h.get("ticker") or h.get("nameOfIssuer", "?")[:20]
+    role = h.get("thesis_role") or "Other"
+    instr = _instrument_type(h)
+    val = h.get("value", 0)
+    pct = val / total_aum * 100 if total_aum else 0
+    return f"{ticker} ({role}) {instr} — ${val / 1_000_000:.2f}B · {pct:.1f}%"
+
+
+def _instrument_mix(holdings: list[dict], total_aum: float) -> str:
+    shares = calls = puts = 0.0
+    for h in holdings:
+        v = h.get("value", 0)
+        pc = h.get("putCall")
+        if pc == "Put":
+            puts += v
+        elif pc == "Call":
+            calls += v
+        else:
+            shares += v
+    def _pct(v: float) -> float:
+        return v / total_aum * 100 if total_aum else 0.0
+    return (
+        f"Shares: ${shares / 1_000_000:.2f}B ({_pct(shares):.1f}%) · "
+        f"Calls: ${calls / 1_000_000:.2f}B ({_pct(calls):.1f}%) · "
+        f"Puts: ${puts / 1_000_000:.2f}B ({_pct(puts):.1f}%)"
+    )
+
+
 def _delta_to_csv(delta: dict) -> str:
-    rows = ["Issuer,Type,Status,Δ%,Value($k)"]
+    rows = ["Ticker,Issuer,Type,Status,Δ%,Value($k)"]
     for status in ("new", "closed", "increased", "decreased"):
         for pos in delta.get(status, []):
             pct = pos.get("pct_change")
             pct_str = f"{pct:+.1f}%" if pct is not None else "NEW" if status == "new" else "CLOSED"
             rows.append(
+                f"{pos.get('ticker') or '—'},"
                 f"{pos.get('nameOfIssuer', '?')[:30]},"
                 f"{pos.get('putCall') or 'SHARE'},"
                 f"{status.upper()},"
@@ -106,10 +164,17 @@ async def analyze_delta(
         save_analysis(filing_pair, text)
         return text, False
 
+    all_positions = []
+    for key in ("new", "closed", "increased", "decreased", "unchanged"):
+        all_positions.extend(delta.get(key, []))
+    total_aum = sum(p.get("value", 0) or 0 for p in all_positions)
+    mix = _instrument_mix(all_positions, total_aum) if all_positions else "n/a"
+
     prompt = _USER_TEMPLATE.format(
         prev_period=prev_meta.get("period_of_report", "prev"),
         curr_period=curr_meta.get("period_of_report", "curr"),
         n=total_changes,
+        instrument_mix=mix,
         delta_csv=_delta_to_csv(delta),
     )
 
@@ -141,19 +206,22 @@ async def analyze_strategy(
         rows.append(f"{layer} | ${val / 1_000_000:.2f}B | {pct:.1f}%")
 
     top = sorted(holdings, key=lambda h: h.get("value", 0), reverse=True)[:12]
-    top_lines = []
-    for h in top:
-        ticker = h.get("ticker") or h.get("nameOfIssuer", "?")[:20]
-        role = h.get("thesis_role") or "Other"
-        val = h.get("value", 0)
-        pct = val / total_aum * 100 if total_aum else 0
-        top_lines.append(f"{ticker} ({role}) — ${val / 1_000_000:.2f}B · {pct:.1f}%")
+    top_lines = [_holding_line(h, total_aum) for h in top]
+
+    puts = sorted(
+        [h for h in holdings if h.get("putCall") == "Put"],
+        key=lambda h: h.get("value", 0),
+        reverse=True,
+    )[:10]
+    put_lines = [_holding_line(h, total_aum) for h in puts] if puts else ["(none)"]
 
     prompt = _STRATEGY_TEMPLATE.format(
         period=curr_meta.get("period_of_report", ""),
         aum_b=total_aum / 1_000_000,
         n_holdings=len(holdings),
+        instrument_mix=_instrument_mix(holdings, total_aum),
         layer_table="\n".join(rows),
+        put_book="\n".join(put_lines),
         top_holdings="\n".join(top_lines),
     )
 

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { fetchHoldings, fetchAnalysis, fetchMovers, triggerRefresh, fetchAlpha, checkNewFiling, fetchStrategy } from './api'
+import { fetchHoldings, fetchAnalysis, fetchMovers, triggerRefresh, fetchAlpha, checkNewFiling, fetchStrategy, invalidateStrategyCache, invalidateAnalysisCache } from './api'
 import StatusBar from './components/StatusBar'
 import KPICard from './components/KPICard'
 import BucketChart from './components/BucketChart'
@@ -74,6 +74,19 @@ export default function App() {
   const refresh = useMutation({
     mutationFn: triggerRefresh,
     onSuccess: () => qc.invalidateQueries(),
+  })
+
+  const refreshStrategy = useMutation({
+    mutationFn: async () => {
+      await invalidateStrategyCache()
+      await qc.invalidateQueries({ queryKey: ['strategy'] })
+    },
+  })
+  const refreshAnalysis = useMutation({
+    mutationFn: async () => {
+      await invalidateAnalysisCache()
+      await qc.invalidateQueries({ queryKey: ['analysis'] })
+    },
   })
 
   function fmtAUM(v: number): string {
@@ -280,16 +293,16 @@ export default function App() {
         {/* LLM Insight */}
         <LLMInsight
           data={analysis.data}
-          isLoading={analysis.isLoading}
-          onRefresh={() => qc.invalidateQueries({ queryKey: ['analysis'] })}
+          isLoading={analysis.isLoading || refreshAnalysis.isPending}
+          onRefresh={() => refreshAnalysis.mutate()}
         />
 
         {/* Thesis Stack */}
         <ThesisInsight
           holdings={data!.holdings}
           strategy={strategyQuery.data}
-          isLoading={strategyQuery.isLoading}
-          onRefresh={() => qc.invalidateQueries({ queryKey: ['strategy'] })}
+          isLoading={strategyQuery.isLoading || refreshStrategy.isPending}
+          onRefresh={() => refreshStrategy.mutate()}
         />
 
         {/* Holdings Table */}

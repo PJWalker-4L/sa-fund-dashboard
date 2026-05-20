@@ -14,6 +14,12 @@ export const fetchMovers = (): Promise<MoversResponse> =>
 export const triggerRefresh = (): Promise<{ status: string; period: string }> =>
   fetch('/api/refresh', { method: 'POST' }).then(ok).then(r => r.json())
 
+export const invalidateStrategyCache = (): Promise<{ status: string; cache: string }> =>
+  fetch('/api/invalidate-strategy', { method: 'POST' }).then(ok).then(r => r.json())
+
+export const invalidateAnalysisCache = (): Promise<{ status: string; cache: string }> =>
+  fetch('/api/invalidate-analysis', { method: 'POST' }).then(ok).then(r => r.json())
+
 export const fetchAlpha = (): Promise<import('./types').AlphaResponse> =>
   fetch('/api/alpha').then(ok).then(r => r.json())
 

@@ -68,6 +68,16 @@ export default function ThesisInsight({ holdings, strategy, isLoading, onRefresh
   const layerValue = (key: string) =>
     (layerMap[key] ?? []).reduce((s, h) => s + h.value, 0)
 
+  const layerLongValue = (key: string) =>
+    (layerMap[key] ?? [])
+      .filter(h => h.putCall !== 'Put')
+      .reduce((s, h) => s + h.value, 0)
+
+  const layerPutValue = (key: string) =>
+    (layerMap[key] ?? [])
+      .filter(h => h.putCall === 'Put')
+      .reduce((s, h) => s + h.value, 0)
+
   return (
     <div style={{
       background: 'var(--surface)',
@@ -117,7 +127,11 @@ export default function ThesisInsight({ holdings, strategy, isLoading, onRefresh
             {LAYERS.map(layer => {
               const positions = layerMap[layer.key] ?? []
               const val = layerValue(layer.key)
+              const longVal = layerLongValue(layer.key)
+              const putVal = layerPutValue(layer.key)
               const pct = totalAum ? (val / totalAum * 100) : 0
+              const longPct = totalAum ? (longVal / totalAum * 100) : 0
+              const putPct = totalAum ? (putVal / totalAum * 100) : 0
 
               return (
                 <div key={layer.key} style={{
@@ -132,8 +146,16 @@ export default function ThesisInsight({ holdings, strategy, isLoading, onRefresh
                       {layer.label.toUpperCase()}
                     </span>
                     {positions.length > 0 && (
-                      <span style={{ fontSize: 10, color: 'var(--text-2)', fontFamily: 'var(--mono)' }}>
-                        {fmtValue(val)} · {pct.toFixed(1)}%
+                      <span style={{ fontSize: 10, color: 'var(--text-2)', fontFamily: 'var(--mono)', textAlign: 'right' }}>
+                        {putVal > 0 ? (
+                          <>
+                            <span>{fmtValue(longVal)} long · {longPct.toFixed(1)}%</span>
+                            <br />
+                            <span style={{ color: '#f87171' }}>{fmtValue(putVal)} puts · {putPct.toFixed(1)}%</span>
+                          </>
+                        ) : (
+                          <span>{fmtValue(val)} · {pct.toFixed(1)}%</span>
+                        )}
                       </span>
                     )}
                   </div>

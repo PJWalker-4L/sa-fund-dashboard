@@ -208,12 +208,24 @@ async def check_new_filing():
 @app.post("/api/refresh")
 async def refresh():
     state_manager.invalidate_holdings_cache()
-    state_manager.invalidate_strategy_cache()
+    state_manager.invalidate_llm_caches()
     try:
         _, curr_meta, _, _ = _fetch_live()
         return {"status": "refreshed", "period": curr_meta["period_of_report"]}
     except Exception as e:
         raise _http_503("SEC data fetch failed", e)
+
+
+@app.post("/api/invalidate-strategy")
+async def invalidate_strategy():
+    state_manager.invalidate_strategy_cache()
+    return {"status": "ok", "cache": "strategy"}
+
+
+@app.post("/api/invalidate-analysis")
+async def invalidate_analysis():
+    state_manager.invalidate_analysis_cache()
+    return {"status": "ok", "cache": "analysis"}
 
 
 @app.get("/api/movers", response_model=MoversResponse)
@@ -280,6 +292,7 @@ async def get_strategy():
             "ticker": str(row.get("ticker") or ""),
             "nameOfIssuer": str(row.get("nameOfIssuer", "")),
             "value": float(row.get("value") or 0),
+            "putCall": state_manager.normalize_put_call(row.get("putCall")),
             "thesis_role": get_thesis_role(str(row.get("ticker") or ""), str(row.get("nameOfIssuer", ""))),
         }
         for _, row in curr_df.iterrows()

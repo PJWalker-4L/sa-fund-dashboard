@@ -114,6 +114,16 @@ def save_analysis(filing_pair: str, text: str) -> None:
     _ANALYSIS_CACHE.write_text(json.dumps(cache, indent=2), encoding="utf-8")
 
 
+def invalidate_analysis_cache() -> None:
+    if _ANALYSIS_CACHE.exists():
+        _ANALYSIS_CACHE.unlink()
+
+
+def invalidate_llm_caches() -> None:
+    invalidate_analysis_cache()
+    invalidate_strategy_cache()
+
+
 def get_cached_strategy(filing_key: str) -> Optional[str]:
     if not _STRATEGY_CACHE.exists():
         return None
