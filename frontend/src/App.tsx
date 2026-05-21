@@ -137,9 +137,13 @@ export default function App() {
     )
   }
 
-  const topPutLabel = data!.put_count > 0
-    ? `${data!.put_count} put position${data!.put_count !== 1 ? 's' : ''}`
-    : 'no put options'
+  const putsNotional = data!.holdings
+    .filter(h => h.putCall === 'Put')
+    .reduce((sum, h) => sum + h.value, 0)
+  const putsPct = data!.total_aum_thousands > 0
+    ? Math.round(putsNotional / data!.total_aum_thousands * 100)
+    : 0
+  const topPutLabel = `${putsPct}% of 13F notional`
 
   const tickerNames = buildTickerNameMap(data!.holdings)
 
