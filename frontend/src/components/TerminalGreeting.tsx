@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 
 const SPEED = 36 // ms per character
 
+// Module-level flag: resets on every full page reload, survives tab-switches
+let _alreadyShown = false
+
 function getMessage(): string {
   const h = new Date().getHours()
   if (h >= 5 && h < 12)
@@ -14,47 +17,49 @@ function getMessage(): string {
 }
 
 export default function TerminalGreeting() {
-  const [shown] = useState(() => {
-    if (typeof sessionStorage === 'undefined') return true
-    if (sessionStorage.getItem('se_greeted')) return true
-    sessionStorage.setItem('se_greeted', '1')
-    return false
+  const [active] = useState(() => {
+    if (_alreadyShown) return false
+    _alreadyShown = true
+    return true
   })
 
   const [text, setText] = useState('')
   const [done, setDone] = useState(false)
   const message = useRef(getMessage())
-  const idx = useRef(0)
 
   useEffect(() => {
-    if (shown) return
+    if (!active) return
+    let i = 0
     const timer = setInterval(() => {
-      idx.current++
-      setText(message.current.slice(0, idx.current))
-      if (idx.current >= message.current.length) {
+      i++
+      setText(message.current.slice(0, i))
+      if (i >= message.current.length) {
         clearInterval(timer)
         setDone(true)
       }
     }, SPEED)
     return () => clearInterval(timer)
-  }, [shown])
+  }, [active])
 
-  if (shown) return null
+  if (!active) return null
 
   return (
     <div style={{
-      borderTop: '1px solid var(--border)',
-      background: 'var(--bg)',
-      padding: '11px 16px',
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      background: 'linear-gradient(0deg, rgba(1,6,16,0.97) 0%, rgba(1,6,16,0.85) 80%, transparent 100%)',
+      padding: '22px 18px 12px',
       display: 'flex',
       alignItems: 'baseline',
       gap: 8,
       fontFamily: 'var(--mono)',
       fontSize: 11,
       letterSpacing: '0.02em',
-      minHeight: 38,
+      pointerEvents: 'none',
+      zIndex: 4,
     }}>
-      {/* Prompt prefix */}
       <span style={{
         color: 'var(--teal)',
         opacity: 0.5,
@@ -65,16 +70,13 @@ export default function TerminalGreeting() {
       }}>
         SYS //
       </span>
-
-      {/* Typed text + cursor */}
-      <span style={{ color: 'var(--text-2)', lineHeight: 1.5 }}>
+      <span style={{ color: 'var(--text-1)', lineHeight: 1.5 }}>
         {text}
         <span style={{
           display: 'inline-block',
           width: '0.55em',
           height: '1.05em',
-          background: done ? 'var(--teal)' : 'var(--teal)',
-          opacity: done ? undefined : 0.9,
+          background: 'var(--teal)',
           marginLeft: 2,
           verticalAlign: 'text-bottom',
           animation: done ? 'cursor-blink 1.1s step-end infinite' : undefined,

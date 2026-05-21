@@ -398,7 +398,7 @@ export default function App() {
                 </div>
                 <div style={{ padding: centerView === 'map' ? 0 : 12, flex: 1, minHeight: 0 }}>
                   {centerView === 'map' ? (
-                    <>
+                    <div style={{ position: 'relative' }}>
                       <HoldingsMap
                         points={holdingsMap.data?.points ?? []}
                         unmapped={holdingsMap.data?.unmapped ?? []}
@@ -407,7 +407,7 @@ export default function App() {
                         embedded
                       />
                       <TerminalGreeting />
-                    </>
+                    </div>
                   ) : (
                     timelineBlock
                   )}
