@@ -31,7 +31,7 @@ interface Props {
 
 const WIDTH = 960
 const HEIGHT = 520
-const DOT_STEP = 7
+const DOT_STEP = 8
 
 function generateCountryDots(
   country: CountryFeature,
@@ -104,20 +104,23 @@ export default function HoldingsMap({
   onTickerClick,
   embedded = false,
 }: Props) {
-  const [worldData, setWorldData] = useState<Topology | null>(null)
+  // 50m = sharp borders (rendered paths), 110m = fast geoContains (dot generation)
+  const [bordersData, setBordersData] = useState<Topology | null>(null)
+  const [dotsData, setDotsData] = useState<Topology | null>(null)
   const [mapLoading, setMapLoading] = useState(true)
   const [countryDots, setCountryDots] = useState<CountryDots[]>([])
   const [hovered, setHovered] = useState<HoldingsMapPoint | null>(null)
   const [hoveredCountryId, setHoveredCountryId] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch('/countries-50m.json')
-      .then(r => r.json())
-      .then((data: Topology) => {
-        setWorldData(data)
-        setMapLoading(false)
-      })
-      .catch(() => setMapLoading(false))
+    Promise.all([
+      fetch('/countries-50m.json').then(r => r.json()),
+      fetch('/countries-110m.json').then(r => r.json()),
+    ]).then(([data50m, data110m]: [Topology, Topology]) => {
+      setBordersData(data50m)
+      setDotsData(data110m)
+      setMapLoading(false)
+    }).catch(() => setMapLoading(false))
   }, [])
 
   const projection = useMemo(
@@ -127,33 +130,44 @@ export default function HoldingsMap({
 
   const geoPath = useMemo(() => d3.geoPath().projection(projection), [projection])
 
+  // 50m features — used only for rendering the border path elements
   const countries = useMemo(() => {
-    if (!worldData) return [] as CountryFeature[]
+    if (!bordersData) return [] as CountryFeature[]
     const collection = feature(
-      worldData,
-      worldData.objects.countries as Parameters<typeof feature>[1],
+      bordersData,
+      bordersData.objects.countries as Parameters<typeof feature>[1],
     ) as FeatureCollection
     return collection.features as CountryFeature[]
-  }, [worldData])
+  }, [bordersData])
 
-  // Compute dots in async chunks so the map renders borders immediately
+  // 110m features — used only for dot containment checks (10x faster geoContains)
+  const dotCountries = useMemo(() => {
+    if (!dotsData) return [] as CountryFeature[]
+    const collection = feature(
+      dotsData,
+      dotsData.objects.countries as Parameters<typeof feature>[1],
+    ) as FeatureCollection
+    return collection.features as CountryFeature[]
+  }, [dotsData])
+
+  // Compute dots in async chunks using the fast 110m geometries
   useEffect(() => {
-    if (!countries.length) return
+    if (!dotCountries.length) return
     setCountryDots([])
-    const CHUNK = 25
+    const CHUNK = 10
     let i = 0
     const results: CountryDots[] = []
     function processChunk() {
-      const end = Math.min(i + CHUNK, countries.length)
+      const end = Math.min(i + CHUNK, dotCountries.length)
       for (; i < end; i++) {
-        const c = countries[i]
+        const c = dotCountries[i]
         results.push({ countryId: String(c.id ?? ''), dots: generateCountryDots(c, projection, geoPath) })
       }
       setCountryDots([...results])
-      if (i < countries.length) setTimeout(processChunk, 0)
+      if (i < dotCountries.length) setTimeout(processChunk, 0)
     }
     setTimeout(processChunk, 0)
-  }, [countries, projection, geoPath])
+  }, [dotCountries, projection, geoPath])
 
   const activeCountryIds = useMemo(() => {
     const ids = new Set<string>()
