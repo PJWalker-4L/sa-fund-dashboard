@@ -92,7 +92,7 @@ export default function ChatPanel({ onClose }: Props) {
           style={{
             width: '100%', fontSize: 11,
             background: 'var(--bg)', color: 'var(--text-1)',
-            border: '1px solid var(--border)', borderRadius: 3,
+            border: '1px solid var(--border)',
             padding: '4px 8px', cursor: 'pointer',
           }}
         >
@@ -115,8 +115,7 @@ export default function ChatPanel({ onClose }: Props) {
                 key={s}
                 onClick={() => send(s)}
                 style={{
-                  background: 'var(--bg)', border: '1px solid var(--border)',
-                  borderRadius: 6, padding: '7px 10px', cursor: 'pointer',
+                  background: 'var(--bg)', border: '1px solid var(--border)', padding: '7px 10px', cursor: 'pointer',
                   color: 'var(--text-2)', fontSize: 11, textAlign: 'left',
                   lineHeight: 1.4,
                 }}
@@ -135,7 +134,6 @@ export default function ChatPanel({ onClose }: Props) {
               maxWidth: '92%',
               background: m.role === 'user' ? 'var(--blue)' : 'var(--bg)',
               color: m.role === 'user' ? '#fff' : 'var(--text-1)',
-              borderRadius: m.role === 'user' ? '10px 10px 2px 10px' : '10px 10px 10px 2px',
               border: m.role === 'assistant' ? '1px solid var(--border)' : 'none',
               padding: '8px 12px',
               fontSize: 12,
@@ -154,7 +152,6 @@ export default function ChatPanel({ onClose }: Props) {
               alignSelf: 'flex-start',
               background: 'var(--bg)',
               border: '1px solid var(--border)',
-              borderRadius: '10px 10px 10px 2px',
               padding: '8px 12px',
               fontSize: 12,
               color: 'var(--text-3)',
@@ -179,7 +176,7 @@ export default function ChatPanel({ onClose }: Props) {
             style={{
               flex: 1, fontSize: 12,
               background: 'var(--bg)', color: 'var(--text-1)',
-              border: '1px solid var(--border)', borderRadius: 4,
+              border: '1px solid var(--border)',
               padding: '6px 10px', outline: 'none',
             }}
           />
@@ -189,7 +186,7 @@ export default function ChatPanel({ onClose }: Props) {
             style={{
               padding: '6px 12px', fontSize: 13, fontWeight: 600,
               background: 'var(--blue)', color: '#fff',
-              border: 'none', borderRadius: 4, cursor: 'pointer',
+              border: 'none', cursor: 'pointer',
               opacity: (!input.trim() || isLoading) ? 0.35 : 1,
               transition: 'opacity 0.15s',
             }}

@@ -37,7 +37,6 @@ export default function DeltaBadge({ newCount, closedCount, increasedCount, decr
             onClick={() => onFilter(active ? null : b.key)}
             style={{
               padding: '2px 10px',
-              borderRadius: 20,
               border: `1px solid ${b.color}40`,
               background: active ? b.color + '22' : 'transparent',
               color: active ? b.color : b.color + 'bb',
@@ -57,7 +56,6 @@ export default function DeltaBadge({ newCount, closedCount, increasedCount, decr
           onClick={() => onFilter(null)}
           style={{
             padding: '2px 8px',
-            borderRadius: 20,
             border: '1px solid var(--border)',
             background: 'transparent',
             color: 'var(--text-3)',

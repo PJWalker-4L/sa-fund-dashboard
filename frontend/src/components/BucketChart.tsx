@@ -76,7 +76,6 @@ export default function BucketChart({ buckets, holdings, topN = 10, onPositionCl
     <div style={{
       background: 'var(--surface)',
       border: '1px solid var(--border)',
-      borderRadius: 6,
       padding: '16px 20px',
     }}>
       {/* Header row */}
@@ -93,7 +92,6 @@ export default function BucketChart({ buckets, holdings, topN = 10, onPositionCl
             display: 'flex',
             background: 'var(--surface-hi)',
             border: '1px solid var(--border)',
-            borderRadius: 4,
             overflow: 'hidden',
           }}>
             {(['buckets', 'positions'] as Mode[]).map(m => (
@@ -153,7 +151,6 @@ export default function BucketChart({ buckets, holdings, topN = 10, onPositionCl
                 contentStyle={{
                   background: 'var(--surface-hi)',
                   border: '1px solid var(--border)',
-                  borderRadius: 4,
                   fontSize: 11,
                   color: 'var(--text-1)',
                 }}
@@ -183,14 +180,13 @@ export default function BucketChart({ buckets, holdings, topN = 10, onPositionCl
                   display: 'flex', alignItems: 'center', gap: 7,
                   cursor: clickable ? 'pointer' : 'default',
                   padding: '2px 4px',
-                  borderRadius: 3,
                   transition: 'background 0.1s',
                 }}
                 onMouseEnter={e => { if (clickable) e.currentTarget.style.background = 'var(--surface-hi)' }}
                 onMouseLeave={e => { if (clickable) e.currentTarget.style.background = 'transparent' }}
               >
                 <span style={{
-                  width: 7, height: 7, borderRadius: '50%',
+                  width: 7, height: 7,
                   background: d.fill, flexShrink: 0,
                 }} />
                 <span style={{

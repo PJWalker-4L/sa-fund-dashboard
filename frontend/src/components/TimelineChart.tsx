@@ -59,7 +59,6 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<
     <div style={{
       background: 'var(--surface-2, #1a1f2e)',
       border: '1px solid var(--border)',
-      borderRadius: 4,
       padding: '8px 12px',
       fontSize: 12,
     }}>
@@ -82,7 +81,6 @@ export default function TimelineChart({ data }: Props) {
     <div style={{
       background: 'var(--surface)',
       border: '1px solid var(--border)',
-      borderRadius: 6,
       overflow: 'hidden',
     }}>
       <div style={{
@@ -102,7 +100,6 @@ export default function TimelineChart({ data }: Props) {
             <span key={b.label} style={{
               fontSize: 11,
               padding: '2px 8px',
-              borderRadius: 3,
               background: 'rgba(34, 197, 94, 0.12)',
               color: 'var(--green)',
               border: '1px solid rgba(34, 197, 94, 0.25)',

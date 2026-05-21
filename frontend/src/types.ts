@@ -172,3 +172,21 @@ export interface FundNewsResponse {
   holding_count: number
   keyword_count: number
 }
+
+export interface HoldingsMapPoint {
+  ticker: string
+  name: string
+  value: number
+  putCall: string | null
+  city: string
+  country: string
+  lat: number
+  lng: number
+  thesis_role: string | null
+}
+
+export interface HoldingsMapResponse {
+  points: HoldingsMapPoint[]
+  unmapped: string[]
+  period_of_report: string
+}

@@ -24,7 +24,7 @@ function fmtDate(ts: number): string {
 function Skeleton({ width = '100%', height = 12 }: { width?: string; height?: number }) {
   return (
     <div className="pulse" style={{
-      width, height, borderRadius: 3,
+      width, height,
       background: 'var(--border)',
       display: 'inline-block',
     }} />
@@ -99,7 +99,7 @@ export default function CompanyDrawer({ ticker, holding, totalAum, onClose }: Pr
               </span>
               {holding?.putCall && (
                 <span style={{
-                  fontSize: 9, padding: '1px 6px', borderRadius: 3,
+                  fontSize: 9, padding: '1px 6px',
                   background: 'rgba(56,189,248,0.15)', color: 'var(--blue)',
                   fontWeight: 700, letterSpacing: '0.05em',
                 }}>
@@ -166,7 +166,7 @@ export default function CompanyDrawer({ ticker, holding, totalAum, onClose }: Pr
                 display: 'block', marginTop: 8,
                 padding: '4px 10px', fontSize: 11, fontWeight: 600,
                 background: 'transparent', color: 'var(--blue)',
-                border: '1px solid var(--border)', borderRadius: 3, cursor: 'pointer',
+                border: '1px solid var(--border)', cursor: 'pointer',
               }}
             >
               Erneut versuchen
@@ -237,7 +237,7 @@ export default function CompanyDrawer({ ticker, holding, totalAum, onClose }: Pr
           {loading ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {[1, 2, 3].map(i => (
-                <div key={i} style={{ padding: '10px 12px', background: 'var(--surface-hi)', borderRadius: 4 }}>
+                <div key={i} style={{ padding: '10px 12px', background: 'var(--surface-hi)'}}>
                   <Skeleton width="90%" height={10} />
                   <div style={{ marginTop: 6 }}><Skeleton width="50%" height={9} /></div>
                 </div>
@@ -258,7 +258,6 @@ export default function CompanyDrawer({ ticker, holding, totalAum, onClose }: Pr
                     padding: '10px 12px',
                     background: 'var(--surface-hi)',
                     border: '1px solid var(--border)',
-                    borderRadius: 4,
                     textDecoration: 'none',
                     transition: 'border-color 0.15s',
                   }}

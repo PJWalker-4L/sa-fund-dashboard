@@ -38,6 +38,9 @@ export const fetchHistory = (): Promise<import('./types').HistoryResponse> =>
 export const fetchFundNews = (): Promise<import('./types').FundNewsResponse> =>
   fetch('/api/fund-news').then(ok).then(r => r.json())
 
+export const fetchHoldingsMap = (): Promise<import('./types').HoldingsMapResponse> =>
+  fetch('/api/holdings-map').then(ok).then(r => r.json())
+
 export const sendChatMessage = (
   message: string,
   history: import('./types').ChatMessage[],

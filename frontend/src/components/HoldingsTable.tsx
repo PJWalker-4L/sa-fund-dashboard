@@ -154,7 +154,6 @@ export default function HoldingsTable({ holdings, statusFilter, onTickerClick }:
                     <span style={{
                       fontSize: 10,
                       padding: '2px 6px',
-                      borderRadius: 3,
                       background: h.putCall === 'Call'
                         ? 'rgba(56,189,248,0.12)'
                         : 'rgba(249,115,22,0.12)',

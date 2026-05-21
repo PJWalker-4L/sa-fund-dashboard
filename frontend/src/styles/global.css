@@ -7,14 +7,14 @@ button, input, select, textarea,
 }
 
 :root {
-  --bg:         #050c1c;
-  --surface:    #081220;
-  --surface-hi: #0c1a2e;
-  --border:     #112238;
-  --border-hi:  #1c3050;
-  --text-1:     #e2eeff;
-  --text-2:     #5a7898;
-  --text-3:     #324560;
+  --bg:         #020810;
+  --surface:    #040c14;
+  --surface-hi: #071018;
+  --border:     #0c1828;
+  --border-hi:  #142840;
+  --text-1:     #eef4fc;
+  --text-2:     #6b8aaa;
+  --text-3:     #3d5570;
   --green:      #1cd47c;
   --red:        #f04444;
   --blue:       #30b8f5;
@@ -22,12 +22,12 @@ button, input, select, textarea,
   --yellow:     #f5c030;
   --purple:     #9b72ff;
   --teal:       #1ee8d4;
-  --teal-dim:   rgba(30,232,212,0.12);
+  --teal-dim:   rgba(30,232,212,0.10);
   --teal-glow:  rgba(30,232,212,0.32);
   /* Grid overlay — applied via background-image on all surfaces */
   --grid:
-    linear-gradient(rgba(30,232,212,0.038) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(30,232,212,0.038) 1px, transparent 1px);
+    linear-gradient(rgba(30,232,212,0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30,232,212,0.022) 1px, transparent 1px);
   --grid-size: 42px 42px;
   --font:       'Barlow Semi Condensed', system-ui, sans-serif;
   --mono:       'JetBrains Mono', 'Fira Code', monospace;
@@ -84,9 +84,9 @@ button { font-family: var(--font); }
   border: 1px solid var(--border);
   position: relative;
   box-shadow:
-    0 4px 32px rgba(0,0,0,0.6),
-    inset 0 1px 0 rgba(255,255,255,0.03),
-    0 0 0 1px rgba(30,232,212,0.04);
+    0 4px 32px rgba(0,0,0,0.75),
+    inset 0 1px 0 rgba(255,255,255,0.02),
+    0 0 0 1px rgba(30,232,212,0.03);
 }
 
 /* TL corner accent */
@@ -259,7 +259,7 @@ button { font-family: var(--font); }
 
 .kpi-row {
   padding: 11px 16px;
-  border-bottom: 1px solid rgba(18,32,58,0.9);
+  border-bottom: 1px solid rgba(12, 24, 40, 0.95);
   display: flex;
   flex-direction: column;
   gap: 4px;

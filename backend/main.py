@@ -12,12 +12,14 @@ import company_client
 import alpha_calculator
 import history_builder
 import fund_news_client
+import holdings_geo
 from sectors import classify, thesis_role as get_thesis_role
 from models import (
     HoldingsResponse, AnalysisResponse, FilingMeta, HoldingRow,
     DeltaSummary, BucketAllocation, MoversResponse, MoverItem,
     CompanyInfoResponse, NewsItem, AlphaResponse, StrategyResponse,
     ChatRequest, ChatResponse, HistoryResponse, FundNewsResponse,
+    HoldingsMapResponse, HoldingsMapPoint,
 )
 
 app = FastAPI(title="SA Fund Dashboard API", version="1.0.0")
@@ -159,6 +161,34 @@ async def get_holdings():
     except Exception as e:
         raise _http_503("SEC data fetch failed", e)
     return _build_holdings_response(curr_df, curr_meta, prev_df, prev_meta)
+
+
+@app.get("/api/holdings-map", response_model=HoldingsMapResponse)
+async def get_holdings_map():
+    try:
+        curr_df, curr_meta, _, _ = _get_data()
+    except Exception as e:
+        raise _http_503("SEC data fetch failed", e)
+
+    holdings_list = [
+        {
+            "ticker": str(row.get("ticker") or ""),
+            "nameOfIssuer": str(row.get("nameOfIssuer", "")),
+            "value": float(row.get("value") or 0),
+            "putCall": state_manager.normalize_put_call(row.get("putCall")),
+            "thesis_role": get_thesis_role(str(row.get("ticker") or ""), str(row.get("nameOfIssuer", ""))),
+        }
+        for _, row in curr_df.iterrows()
+    ]
+
+    raw_points, unmapped = holdings_geo.build_map_points(holdings_list)
+    points = [HoldingsMapPoint(**p) for p in raw_points]
+
+    return HoldingsMapResponse(
+        points=points,
+        unmapped=unmapped,
+        period_of_report=str(curr_meta.get("period_of_report", "")),
+    )
 
 
 @app.get("/api/analysis", response_model=AnalysisResponse)
