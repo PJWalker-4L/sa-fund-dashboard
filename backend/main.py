@@ -349,6 +349,8 @@ async def chat(req: ChatRequest):
             message=req.message,
             history=history,
             portfolio_context=portfolio_context,
+            holdings=holdings_list,
+            curr_meta=curr_meta,
             model=req.model,
         )
     except Exception as e:

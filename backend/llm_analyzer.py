@@ -1,4 +1,5 @@
 import os
+import re
 from pathlib import Path
 from collections import defaultdict
 import httpx
@@ -519,6 +520,8 @@ AI Infrastructure (miner→HPC arbitrage), Optical Interconnects, Storage.
 hold — it is a macro short against the crowded semiconductor trade.
 - When asked for the "largest position" or "biggest holding": answer with LARGEST LONG (SHARE/CALL) \
 unless the user explicitly asks about puts, short book, or total 13F notional ranking.
+- When asked for "Aktienposition", "stock position", or "Share-only": use LOOKUP KEY → Largest SHARE-only. \
+SMH is an ETF PUT — never answer SMH for stock/share questions.
 - Never describe PUT lines as top long holdings or sector conviction.
 
 WHY SA HOLDS SEMI PUTS (SMH, NVDA, AVGO, AMD, MU, TSM, ORCL):
@@ -534,30 +537,166 @@ For companies NOT in the portfolio, reason from the SA thesis about likely exclu
 """
 
 
+def _top_holdings_by_filter(
+    holdings: list[dict],
+    *,
+    share_only: bool = False,
+    puts_only: bool = False,
+    long_only: bool = False,
+) -> list[dict]:
+    filtered: list[dict] = []
+    for h in holdings:
+        pc = h.get("putCall")
+        if share_only and pc in ("Put", "Call"):
+            continue
+        if puts_only and pc != "Put":
+            continue
+        if long_only and pc == "Put":
+            continue
+        filtered.append(h)
+    return sorted(filtered, key=lambda h: h.get("value", 0), reverse=True)
+
+
+def _format_position_fact(h: dict, total_aum: float) -> str:
+    ticker = h.get("ticker") or h.get("nameOfIssuer", "?")[:24]
+    name = h.get("nameOfIssuer", "")
+    role = h.get("thesis_role") or "Other"
+    instr = _instrument_type(h)
+    val = h.get("value", 0)
+    pct = val / total_aum * 100 if total_aum else 0
+    name_part = f" ({name})" if name and ticker != name[:24] else ""
+    return (
+        f"{ticker}{name_part} — {instr}, {role} layer — "
+        f"${val / 1_000_000:.2f}B · {pct:.1f}% of 13F notional"
+    )
+
+
+def _user_prefers_german(message: str) -> bool:
+    lower = message.lower()
+    return bool(
+        re.search(r"[äöüß]", lower)
+        or re.search(
+            r"\b(größte|grösste|aktien|position|portfolio|welche|was ist|short|wette)\b",
+            lower,
+        )
+    )
+
+
+def maybe_answer_chat_deterministically(
+    message: str,
+    holdings: list[dict],
+    curr_meta: dict,
+) -> str | None:
+    """Return a factual answer for common position-ranking questions (no LLM)."""
+    text = message.strip()
+    if not text:
+        return None
+
+    lower = text.lower()
+    total_aum = sum(h.get("value", 0) for h in holdings)
+    period = curr_meta.get("period_of_report", "unknown")
+    de = _user_prefers_german(text)
+
+    share_rank = _top_holdings_by_filter(holdings, share_only=True)
+    put_rank = _top_holdings_by_filter(holdings, puts_only=True)
+    long_rank = _top_holdings_by_filter(holdings, long_only=True)
+
+    asks_share = bool(
+        re.search(
+            r"(aktienposition|aktien.?position|nur aktien|stock position|share.?only|"
+            r"gr[oößs]+te?\s+aktie|largest stock|biggest stock|equity position|"
+            r"gr[oößs]+te.*aktien|aktien.*gr[oößs]+te)",
+            lower,
+        )
+    )
+    asks_put = bool(
+        re.search(
+            r"(put.?position|short.?book|größte.*put|grösste.*put|largest put|"
+            r"short.?wette|bearish|größte short|grösste short)",
+            lower,
+        )
+    )
+    asks_largest = bool(
+        re.search(
+            r"(größte|grösste|größten|grössten|biggest|largest|top).{0,40}"
+            r"(position|holding|bet|posten|exposure|anteil)",
+            lower,
+        )
+    )
+
+    if asks_share and share_rank:
+        top = share_rank[0]
+        fact = _format_position_fact(top, total_aum)
+        if de:
+            return (
+                f"Größte Aktienposition (SHARE, Filing {period}): {fact}.\n\n"
+                f"Hinweis: SMH ist mit ~$2B das größte Put-Notional im Filing — "
+                f"eine Short-Wette auf den VanEck Semiconductor ETF, keine Aktienposition."
+            )
+        return (
+            f"Largest stock position (SHARE only, filing {period}): {fact}.\n\n"
+            f"Note: SMH is the largest PUT notional (~$2B) — a bearish bet on the "
+            f"VanEck Semiconductor ETF, not a stock holding."
+        )
+
+    if asks_put and put_rank:
+        top = put_rank[0]
+        fact = _format_position_fact(top, total_aum)
+        if de:
+            return f"Größte Put-Position (bearish, {period}): {fact}."
+        return f"Largest PUT position (bearish, filing {period}): {fact}."
+
+    if asks_largest and not asks_put and long_rank:
+        top = long_rank[0]
+        fact = _format_position_fact(top, total_aum)
+        top_put = put_rank[0] if put_rank else None
+        put_note = ""
+        if top_put and top_put.get("value", 0) > top.get("value", 0):
+            put_fact = _format_position_fact(top_put, total_aum)
+            if de:
+                put_note = (
+                    f"\n\nNach rohem 13F-Notional steht {put_fact} höher — "
+                    f"das ist aber ein PUT (Short-Expression), nicht die größte Long-Position."
+                )
+            else:
+                put_note = (
+                    f"\n\nBy raw 13F notional, {put_fact} ranks higher — "
+                    f"but that is a PUT (bearish), not the largest long position."
+                )
+        if de:
+            return f"Größte Long-Position (SHARE/CALL, {period}): {fact}.{put_note}"
+        return f"Largest long position (SHARE/CALL, filing {period}): {fact}.{put_note}"
+
+    return None
+
+
 def build_portfolio_context_for_chat(holdings: list[dict], curr_meta: dict) -> str:
     """Instrument-aware portfolio snapshot for the chat system prompt."""
     total_aum = sum(h.get("value", 0) for h in holdings)
-    longs = sorted(
-        [h for h in holdings if h.get("putCall") != "Put"],
-        key=lambda h: h.get("value", 0),
-        reverse=True,
-    )
-    puts = sorted(
-        [h for h in holdings if h.get("putCall") == "Put"],
-        key=lambda h: h.get("value", 0),
-        reverse=True,
-    )
+    shares = _top_holdings_by_filter(holdings, share_only=True)
+    longs = _top_holdings_by_filter(holdings, long_only=True)
+    puts = _top_holdings_by_filter(holdings, puts_only=True)
     top_by_notional = sorted(holdings, key=lambda h: h.get("value", 0), reverse=True)[:15]
 
     lines = [
         f"Filing period: {curr_meta.get('period_of_report', 'unknown')}",
         f"Total 13F notional: ~${total_aum / 1_000_000:.1f}B across {len(holdings)} line items",
         "",
+        "LOOKUP KEY (authoritative — use for ranking questions):",
+    ]
+    if shares:
+        lines.append(f"  Largest SHARE-only (Aktien): {_holding_line(shares[0], total_aum)}")
+    if longs:
+        lines.append(f"  Largest LONG (SHARE+CALL): {_holding_line(longs[0], total_aum)}")
+    if puts:
+        lines.append(f"  Largest PUT (NOT a stock): {_holding_line(puts[0], total_aum)}")
+    lines.extend([
+        "",
         "INSTRUMENT MIX (by 13F notional):",
         f"  {_instrument_mix(holdings, total_aum)}",
         "",
         "LARGEST LONG POSITIONS (SHARE + CALL — use for 'biggest holding' / 'largest position'):",
-    ]
+    ])
     if longs:
         for h in longs[:10]:
             lines.append(f"  {_holding_line(h, total_aum)}")
@@ -573,7 +712,7 @@ def build_portfolio_context_for_chat(holdings: list[dict], curr_meta: dict) -> s
 
     lines.extend([
         "",
-        "TOP 15 BY RAW 13F NOTIONAL (puts may rank #1 by $ — check instrument type):",
+        "TOP 15 BY RAW 13F NOTIONAL (reference only — puts rank high by $; do NOT use for Aktien/share questions):",
     ])
     for h in top_by_notional:
         lines.append(f"  {_holding_line(h, total_aum)}")
@@ -585,8 +724,14 @@ async def chat_with_portfolio(
     message: str,
     history: list[dict],
     portfolio_context: str,
-    model: str = "groq/llama-3.1-8b-instant",
+    holdings: list[dict],
+    curr_meta: dict,
+    model: str = "groq/llama-3.3-70b-versatile",
 ) -> str:
+    deterministic = maybe_answer_chat_deterministically(message, holdings, curr_meta)
+    if deterministic:
+        return deterministic
+
     system = _CHAT_SYSTEM.format(portfolio_context=portfolio_context)
     messages = [{"role": m["role"], "content": m["content"]} for m in history]
     messages.append({"role": "user", "content": message})
@@ -664,7 +809,7 @@ async def _call_groq_chat(messages: list[dict], system: str, model: str) -> str:
                 "model": model,
                 "messages": [{"role": "system", "content": system}] + messages,
                 "max_tokens": 600,
-                "temperature": 0.4,
+                "temperature": 0.2,
             },
         )
         r.raise_for_status()
