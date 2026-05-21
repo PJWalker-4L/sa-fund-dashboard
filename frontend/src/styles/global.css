@@ -8,11 +8,11 @@ button, input, select, textarea,
 
 :root {
   /* ── Blue-navy palette (matched to NEXUS-1 reference) ── */
-  --bg:         #040a1a;
-  --surface:    #071428;
-  --surface-hi: #0c1c38;
-  --border:     #102440;
-  --border-hi:  #1c3860;
+  --bg:         #010610;
+  --surface:    #030c1a;
+  --surface-hi: #071224;
+  --border:     #0d1e34;
+  --border-hi:  #172e4e;
   --text-1:     #ddeeff;
   --text-2:     #5580a8;
   --text-3:     #2c4868;
