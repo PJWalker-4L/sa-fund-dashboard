@@ -11,9 +11,9 @@ type NewsTab = 'keyword' | 'sec' | 'holding'
 const PAGE_SIZE = 10
 
 const TABS: { id: NewsTab; label: string }[] = [
-  { id: 'keyword', label: 'Presse' },
-  { id: 'sec', label: 'SEC-Nachrichten' },
-  { id: 'holding', label: 'Holdings-News' },
+  { id: 'keyword', label: 'Press' },
+  { id: 'sec', label: 'SEC News' },
+  { id: 'holding', label: 'Holdings News' },
 ]
 
 function fmtDate(ts: number): string {

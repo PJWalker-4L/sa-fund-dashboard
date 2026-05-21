@@ -18,6 +18,7 @@ import ChatPanel from './components/ChatPanel'
 import TimelineChart from './components/TimelineChart'
 import FundNewsPanel from './components/FundNewsPanel'
 import HoldingsMap from './components/HoldingsMap'
+import TerminalGreeting from './components/TerminalGreeting'
 import { buildTickerNameMap } from './components/LinkedTickerText'
 import type { HoldingRow } from './types'
 
@@ -397,13 +398,16 @@ export default function App() {
                 </div>
                 <div style={{ padding: centerView === 'map' ? 0 : 12, flex: 1, minHeight: 0 }}>
                   {centerView === 'map' ? (
-                    <HoldingsMap
-                      points={holdingsMap.data?.points ?? []}
-                      unmapped={holdingsMap.data?.unmapped ?? []}
-                      loading={holdingsMap.isLoading}
-                      onTickerClick={handleTickerClick}
-                      embedded
-                    />
+                    <>
+                      <HoldingsMap
+                        points={holdingsMap.data?.points ?? []}
+                        unmapped={holdingsMap.data?.unmapped ?? []}
+                        loading={holdingsMap.isLoading}
+                        onTickerClick={handleTickerClick}
+                        embedded
+                      />
+                      <TerminalGreeting />
+                    </>
                   ) : (
                     timelineBlock
                   )}
