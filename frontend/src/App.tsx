@@ -1,7 +1,11 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { fetchHoldings, fetchAnalysis, fetchMovers, triggerRefresh, fetchAlpha, checkNewFiling, fetchStrategy, invalidateStrategyCache, invalidateAnalysisCache, fetchHistory, fetchFundNews } from './api'
-import StatusBar from './components/StatusBar'
+import {
+  fetchHoldings, fetchAnalysis, fetchMovers, triggerRefresh, fetchAlpha,
+  checkNewFiling, fetchStrategy, invalidateStrategyCache, invalidateAnalysisCache,
+  fetchHistory, fetchFundNews, fetchHoldingsMap,
+} from './api'
+import Header, { type DashboardTab } from './components/Header'
 import KPICard from './components/KPICard'
 import BucketChart from './components/BucketChart'
 import MoversPanel from './components/MoversPanel'
@@ -13,8 +17,30 @@ import CompanyDrawer from './components/CompanyDrawer'
 import ChatPanel from './components/ChatPanel'
 import TimelineChart from './components/TimelineChart'
 import FundNewsPanel from './components/FundNewsPanel'
+import HoldingsMap from './components/HoldingsMap'
 import { buildTickerNameMap } from './components/LinkedTickerText'
 import type { HoldingRow } from './types'
+
+const THESIS_LAYERS = ['Power', 'Silicon', 'GPU Cloud', 'AI Infrastructure', 'Optical', 'Storage'] as const
+
+function fmtAUM(v: number): string {
+  if (v >= 1_000_000) return `$${(v / 1_000_000).toFixed(2)}B`
+  if (v >= 1_000) return `$${(v / 1_000).toFixed(1)}M`
+  return `$${v.toFixed(0)}K`
+}
+
+function PanelShell({ label, children, flush }: { label: string; children: ReactNode; flush?: boolean }) {
+  return (
+    <section className="panel">
+      <div className="panel-header">
+        <span className="section-label">{label}</span>
+      </div>
+      <div className={flush ? 'panel-body panel-body-flush' : 'panel-body'}>
+        {children}
+      </div>
+    </section>
+  )
+}
 
 export default function App() {
   const [statusFilter, setStatusFilter] = useState<string | null>(null)
@@ -22,6 +48,8 @@ export default function App() {
   const [selectedHolding, setSelectedHolding] = useState<HoldingRow | null>(null)
   const [bannerDismissed, setBannerDismissed] = useState<string | null>(null)
   const [chatOpen, setChatOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState<DashboardTab>('portfolio')
+  const [centerView, setCenterView] = useState<'map' | 'timeline'>('map')
   const qc = useQueryClient()
 
   function openDrawer(ticker: string, holding: HoldingRow) {
@@ -81,6 +109,12 @@ export default function App() {
     staleTime: 12 * 3600_000,
     enabled: !!data,
   })
+  const holdingsMap = useQuery({
+    queryKey: ['holdings-map'],
+    queryFn: fetchHoldingsMap,
+    staleTime: 5 * 60_000,
+    enabled: !!data,
+  })
   const filingCheck = useQuery({
     queryKey: ['filing-check'],
     queryFn: checkNewFiling,
@@ -91,7 +125,6 @@ export default function App() {
     mutationFn: triggerRefresh,
     onSuccess: () => qc.invalidateQueries(),
   })
-
   const refreshStrategy = useMutation({
     mutationFn: async () => {
       await invalidateStrategyCache()
@@ -105,24 +138,26 @@ export default function App() {
     },
   })
 
-  function fmtAUM(v: number): string {
-    if (v >= 1_000_000) return `$${(v / 1_000_000).toFixed(2)}B`
-    if (v >= 1_000) return `$${(v / 1_000).toFixed(1)}M`
-    return `$${v.toFixed(0)}K`
-  }
-
   if (isLoading) {
     return (
       <div style={{
         display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
-        height: '100vh', gap: 14,
+        height: '100vh', gap: 16,
       }}>
-        <div style={{ color: 'var(--blue)', fontSize: 18, fontWeight: 700, letterSpacing: '0.08em' }}>
-          SITUATIONAL AWARENESS
-        </div>
-        <div className="pulse" style={{ color: 'var(--text-2)', fontSize: 12 }}>
-          Fetching 13F data from SEC EDGAR…
+        {/* Corner accents on loading box */}
+        <div style={{ position: 'relative', padding: '32px 48px', border: '1px solid var(--border)', background: 'var(--surface)' }}>
+          {/* TL accent */}
+          <div style={{ position: 'absolute', top: -1, left: -1, width: 12, height: 12, borderTop: '1px solid var(--teal)', borderLeft: '1px solid var(--teal)' }} />
+          {/* BR accent */}
+          <div style={{ position: 'absolute', bottom: -1, right: -1, width: 12, height: 12, borderBottom: '1px solid rgba(30,232,212,0.4)', borderRight: '1px solid rgba(30,232,212,0.4)' }} />
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 16, justifyContent: 'center' }}>
+            <span style={{ fontFamily: 'var(--mono)', fontWeight: 700, fontSize: 16, letterSpacing: '0.18em', color: 'var(--text-1)' }}>SITUATIONAL</span>
+            <span style={{ fontFamily: 'var(--mono)', fontWeight: 700, fontSize: 16, letterSpacing: '0.18em', color: 'var(--teal)', textShadow: '0 0 14px var(--teal-glow)' }}>EDGE</span>
+          </div>
+          <div className="pulse" style={{ color: 'var(--text-3)', fontSize: 10, letterSpacing: '0.12em', textAlign: 'center', fontFamily: 'var(--font)', textTransform: 'uppercase' }}>
+            Fetching 13F data from SEC EDGAR…
+          </div>
         </div>
       </div>
     )
@@ -135,12 +170,11 @@ export default function App() {
         alignItems: 'center', justifyContent: 'center',
         height: '100vh', gap: 10,
       }}>
-        <div style={{ color: 'var(--red)', fontSize: 15, fontWeight: 600 }}>Failed to load SEC data</div>
-        <div style={{ color: 'var(--text-2)', fontSize: 12, fontFamily: 'var(--mono)' }}>
-          {String(error)}
+        <div style={{ color: 'var(--red)', fontSize: 13, fontWeight: 700, letterSpacing: '0.1em', fontFamily: 'var(--font)', textTransform: 'uppercase' }}>
+          SEC Data Unavailable
         </div>
-        <div style={{ color: 'var(--text-3)', fontSize: 11, marginTop: 8 }}>
-          Make sure the backend is running: <code>uvicorn main:app --reload</code> (from /backend)
+        <div style={{ fontSize: 11, fontFamily: 'var(--mono)', color: 'var(--text-3)' }}>
+          {String(error)}
         </div>
       </div>
     )
@@ -153,18 +187,55 @@ export default function App() {
     ? Math.round(putsNotional / data!.total_aum_thousands * 100)
     : 0
   const topPutLabel = `${putsPct}% of 13F notional`
-
   const tickerNames = buildTickerNameMap(data!.holdings)
-
   const topName = data!.top_holding_name
     ? data!.top_holding_name.split(' ').slice(0, 3).join(' ')
     : '—'
 
+  const layerCounts = THESIS_LAYERS.map(layer => ({
+    layer,
+    count: data!.holdings.filter(h => h.thesis_role === layer).length,
+    value: data!.holdings.filter(h => h.thesis_role === layer).reduce((s, h) => s + h.value, 0),
+  })).filter(l => l.count > 0)
+
+  const kpiStrip = (
+    <>
+      <KPICard label="Total 13F AUM" value={fmtAUM(data!.total_aum_thousands)} sub={`${data!.meta.period_of_report} filing`} />
+      <KPICard label="Holdings" value={String(data!.holdings.length)} sub={fmtAUM(data!.total_aum_thousands)} />
+      <KPICard
+        label="Alpha vs S&P 500"
+        value={
+          alphaQuery.isLoading ? '…' :
+          alphaQuery.data?.alpha == null ? '—' :
+          `${alphaQuery.data.alpha >= 0 ? '+' : ''}${alphaQuery.data.alpha.toFixed(1)}%`
+        }
+        valueColor={
+          alphaQuery.data?.alpha == null ? undefined :
+          alphaQuery.data.alpha >= 0 ? 'var(--green)' : 'var(--red)'
+        }
+        sub={alphaQuery.data?.portfolio_return != null ? `vs SPY ${alphaQuery.data.spy_return?.toFixed(1)}%` : undefined}
+      />
+      <KPICard label="Top Holding" value={topName} sub={data!.top_holding_pct ? `${data!.top_holding_pct}% of AUM` : undefined} />
+      <KPICard label="Put Options" value={String(data!.put_count)} sub={topPutLabel} />
+      <KPICard label="Call Options" value={String(data!.call_count)} sub={`${data!.holdings.length > 0 ? Math.round(data!.call_count / data!.holdings.length * 100) : 0}%`} />
+    </>
+  )
+
+  const timelineBlock = history.data
+    ? <TimelineChart data={history.data} />
+    : (
+      <div className="panel" style={{ minHeight: 120, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <span className="pulse" style={{ color: 'var(--text-3)', fontSize: 12 }}>Loading timeline…</span>
+      </div>
+    )
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
-      <StatusBar
+      <Header
         meta={data!.meta}
         prevMeta={data!.prev_meta}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
         onRefresh={() => refresh.mutate()}
         isRefreshing={refresh.isPending}
         chatOpen={chatOpen}
@@ -173,40 +244,45 @@ export default function App() {
 
       {filingCheck.data?.has_new && bannerDismissed !== filingCheck.data.latest_accession && (
         <div className="filing-banner" style={{
-          background: 'rgba(251,191,36,0.08)',
-          borderBottom: '1px solid rgba(251,191,36,0.25)',
-          padding: '8px 16px',
+          background: 'rgba(245,192,48,0.06)',
+          borderBottom: '1px solid rgba(245,192,48,0.2)',
+          padding: '7px 16px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           gap: 8,
         }}>
-          <span style={{ fontSize: 12, color: 'var(--yellow)' }}>
-            Neues 13F-HR Filing verfügbar &nbsp;·&nbsp;
-            <span style={{ fontFamily: 'var(--mono)', fontWeight: 600 }}>
-              {filingCheck.data.latest_period}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--yellow)', boxShadow: '0 0 6px rgba(245,192,48,0.6)', flexShrink: 0 }} />
+            <span style={{ fontSize: 10, color: 'var(--yellow)', fontFamily: 'var(--font)', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              New 13F-HR Filing
             </span>
-            &nbsp;(eingereicht {filingCheck.data.latest_filed})
-          </span>
-          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+            <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--text-2)' }}>
+              {filingCheck.data.latest_period} · filed {filingCheck.data.latest_filed}
+            </span>
+          </div>
+          <div style={{ display: 'flex', gap: 6 }}>
             <button
               onClick={() => { refresh.mutate(); setBannerDismissed(filingCheck.data!.latest_accession) }}
               disabled={refresh.isPending}
               style={{
-                padding: '3px 12px', fontSize: 11, fontWeight: 600,
-                background: 'var(--yellow)', color: '#000',
-                border: 'none', borderRadius: 3, cursor: 'pointer',
+                padding: '3px 12px',
+                fontSize: 9,
+                fontWeight: 700,
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                fontFamily: 'var(--font)',
+                background: 'rgba(245,192,48,0.15)',
+                color: 'var(--yellow)',
+                border: '1px solid rgba(245,192,48,0.35)',
+                cursor: 'pointer',
               }}
             >
-              {refresh.isPending ? 'Lädt…' : 'Jetzt laden'}
+              {refresh.isPending ? '↻ …' : 'Load Now'}
             </button>
             <button
               onClick={() => setBannerDismissed(filingCheck.data!.latest_accession)}
-              style={{
-                padding: '3px 8px', fontSize: 11,
-                background: 'transparent', color: 'var(--text-3)',
-                border: '1px solid var(--border)', borderRadius: 3, cursor: 'pointer',
-              }}
+              style={{ padding: '3px 8px', fontSize: 10, background: 'transparent', color: 'var(--text-3)', border: '1px solid var(--border)', cursor: 'pointer' }}
             >
               ✕
             </button>
@@ -217,207 +293,188 @@ export default function App() {
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         {chatOpen && <ChatPanel onClose={() => setChatOpen(false)} />}
 
-      <main style={{ flex: 1, overflowY: 'auto', minWidth: 0 }}>
-      <div className="page-content">
+        <main style={{ flex: 1, overflowY: 'auto', minWidth: 0 }}>
+          {activeTab === 'portfolio' && (
+            <div className="three-col-grid">
+              {/* ── LEFT: Portfolio Status ── */}
+              <div className="col-left" style={{ display: 'flex', flexDirection: 'column' }}>
+                <div className="col-header">
+                  <span className="col-header-label">Portfolio Status</span>
+                </div>
+                <KPICard
+                  label="Total 13F AUM"
+                  value={fmtAUM(data!.total_aum_thousands)}
+                  sub={`${data!.meta.period_of_report} filing`}
+                  status="ACTIVE"
+                />
+                <KPICard
+                  label="Holdings"
+                  value={String(data!.holdings.length)}
+                  sub={fmtAUM(data!.total_aum_thousands) + ' total notional'}
+                  status="NOMINAL"
+                />
+                <KPICard
+                  label="Alpha vs S&P 500"
+                  value={
+                    alphaQuery.isLoading ? '…' :
+                    alphaQuery.data?.alpha == null ? '—' :
+                    `${alphaQuery.data.alpha >= 0 ? '+' : ''}${alphaQuery.data.alpha.toFixed(1)}%`
+                  }
+                  valueColor={
+                    alphaQuery.data?.alpha == null ? undefined :
+                    alphaQuery.data.alpha >= 0 ? 'var(--green)' : 'var(--red)'
+                  }
+                  sub={alphaQuery.data?.spy_return != null ? `SPY ${alphaQuery.data.spy_return >= 0 ? '+' : ''}${alphaQuery.data.spy_return.toFixed(1)}%` : undefined}
+                  status={alphaQuery.data?.alpha != null ? (alphaQuery.data.alpha >= 0 ? 'OUTPERFORM' : 'LAGGING') : undefined}
+                  statusWarn={alphaQuery.data?.alpha != null && alphaQuery.data.alpha < 0}
+                />
+                <KPICard
+                  label="Top Holding"
+                  value={topName}
+                  sub={data!.top_holding_pct ? `${data!.top_holding_pct}% of AUM` : undefined}
+                  barPct={data!.top_holding_pct ?? undefined}
+                />
+                <KPICard
+                  label="Put Options"
+                  value={String(data!.put_count)}
+                  sub={topPutLabel}
+                  barPct={putsPct}
+                  barWarn={putsPct > 50}
+                  status={putsPct > 50 ? 'ELEVATED' : 'NOMINAL'}
+                  statusWarn={putsPct > 50}
+                />
+                <KPICard
+                  label="Call Options"
+                  value={String(data!.call_count)}
+                  sub={`${data!.holdings.length > 0 ? Math.round(data!.call_count / data!.holdings.length * 100) : 0}% of portfolio`}
+                />
+                <div style={{ borderTop: '1px solid var(--border)', padding: '10px 16px' }}>
+                  <div className="col-header-label" style={{ marginBottom: 8 }}>Thesis Layers</div>
+                  {layerCounts.map(l => (
+                    <div key={l.layer} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0', borderBottom: '1px solid var(--border)' }}>
+                      <span style={{ fontSize: 10, letterSpacing: '0.06em', color: 'var(--text-3)' }}>{l.layer.toUpperCase()}</span>
+                      <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--text-1)' }}>
+                        {l.count} · {fmtAUM(l.value)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ padding: '10px 16px', marginTop: 'auto' }}>
+                  <div className="col-header-label" style={{ marginBottom: 8 }}>QoQ Delta</div>
+                  <DeltaBadge
+                    newCount={data!.delta.new_count}
+                    closedCount={data!.delta.closed_count}
+                    increasedCount={data!.delta.increased_count}
+                    decreasedCount={data!.delta.decreased_count}
+                    filter={statusFilter}
+                    onFilter={setStatusFilter}
+                  />
+                </div>
+              </div>
 
-        {/* KPI Strip */}
-        <div className="kpi-grid">
-          <KPICard
-            label="Total 13F AUM"
-            value={fmtAUM(data!.total_aum_thousands)}
-            sub={`${data!.meta.period_of_report} filing`}
-          />
-          <KPICard
-            label="Holdings"
-            value={String(data!.holdings.length)}
-            sub={`top ${Math.min(data!.holdings.length, 17)} shown · ${fmtAUM(data!.total_aum_thousands)}`}
-          />
-          <KPICard
-            label="Alpha vs S&P 500"
-            value={
-              alphaQuery.isLoading ? '…' :
-              alphaQuery.data?.alpha == null ? '—' :
-              `${alphaQuery.data.alpha >= 0 ? '+' : ''}${alphaQuery.data.alpha.toFixed(1)}%`
-            }
-            valueColor={
-              alphaQuery.data?.alpha == null ? undefined :
-              alphaQuery.data.alpha >= 0 ? 'var(--green)' : 'var(--red)'
-            }
-            sub={
-              alphaQuery.data?.portfolio_return != null && alphaQuery.data?.spy_return != null
-                ? `portfolio ${alphaQuery.data.portfolio_return >= 0 ? '+' : ''}${alphaQuery.data.portfolio_return.toFixed(1)}% · SPY ${alphaQuery.data.spy_return >= 0 ? '+' : ''}${alphaQuery.data.spy_return.toFixed(1)}%`
-                : `since ${data!.meta.period_of_report}`
-            }
-          />
-          <KPICard
-            label="Top Holding"
-            value={topName}
-            sub={data!.top_holding_pct ? `${data!.top_holding_pct}% of AUM` : undefined}
-            accent
-          />
-          <KPICard
-            label="Put Options"
-            value={String(data!.put_count)}
-            sub={topPutLabel}
-          />
-          <KPICard
-            label="Call Options"
-            value={String(data!.call_count)}
-            sub={`${data!.holdings.length > 0 ? Math.round(data!.call_count / data!.holdings.length * 100) : 0}% of portfolio`}
-          />
-        </div>
+              {/* ── CENTER: Map / Timeline ── */}
+              <div className="col-center" style={{ display: 'flex', flexDirection: 'column' }}>
+                <div className="col-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span className="col-header-label">
+                    {centerView === 'map' ? 'Holdings Geography' : '13F Exposure — Quarterly Timeline'}
+                  </span>
+                  <div className="view-toggle" role="group" aria-label="Center panel view">
+                    <button
+                      type="button"
+                      className={`view-toggle-btn${centerView === 'map' ? ' active' : ''}`}
+                      onClick={() => setCenterView('map')}
+                    >
+                      Map
+                    </button>
+                    <button
+                      type="button"
+                      className={`view-toggle-btn${centerView === 'timeline' ? ' active' : ''}`}
+                      onClick={() => setCenterView('timeline')}
+                    >
+                      Timeline
+                    </button>
+                  </div>
+                </div>
+                <div style={{ padding: centerView === 'map' ? 0 : 12, flex: 1, minHeight: 0 }}>
+                  {centerView === 'map' ? (
+                    <HoldingsMap
+                      points={holdingsMap.data?.points ?? []}
+                      unmapped={holdingsMap.data?.unmapped ?? []}
+                      loading={holdingsMap.isLoading}
+                      onTickerClick={handleTickerClick}
+                      embedded
+                    />
+                  ) : (
+                    timelineBlock
+                  )}
+                </div>
+              </div>
 
-        {/* Quarterly Timeline */}
-        {history.data
-          ? <TimelineChart data={history.data} />
-          : history.isError
-          ? (
-            <div style={{
-              background: 'var(--surface)',
-              border: '1px solid var(--border)',
-              borderRadius: 6,
-              padding: 16,
-              textAlign: 'center',
-            }}>
-              <span style={{ color: 'var(--red)', fontSize: 12 }}>Timeline failed to load</span>
-            </div>
-          )
-          : (
-            <div style={{
-              background: 'var(--surface)',
-              border: '1px solid var(--border)',
-              borderRadius: 6,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: 120,
-            }}>
-              <span className="pulse" style={{ color: 'var(--text-3)', fontSize: 12 }}>
-                Loading timeline…
-              </span>
+              {/* ── RIGHT: Signals ── */}
+              <div className="col-right" style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                <div className="col-header">
+                  <span className="col-header-label">Signals</span>
+                </div>
+                {movers.data
+                  ? <MoversPanel data={movers.data} onTickerClick={handleTickerClick} />
+                  : <div style={{ padding: 24, textAlign: 'center' }}><span className="pulse" style={{ color: 'var(--text-3)', fontSize: 12 }}>Loading movers…</span></div>}
+                {fundNews.data
+                  ? <FundNewsPanel data={fundNews.data} onTickerClick={handleTickerClick} />
+                  : <div style={{ padding: 24, textAlign: 'center' }}><span className="pulse" style={{ color: 'var(--text-3)', fontSize: 12 }}>Loading news…</span></div>}
+              </div>
             </div>
           )}
 
-        {/* Fund News Feed */}
-        {fundNews.data
-          ? <FundNewsPanel data={fundNews.data} onTickerClick={handleTickerClick} />
-          : fundNews.isError
-          ? (
-            <div style={{
-              background: 'var(--surface)',
-              border: '1px solid var(--border)',
-              borderRadius: 6,
-              padding: 16,
-              textAlign: 'center',
-            }}>
-              <span style={{ color: 'var(--red)', fontSize: 12 }}>Fund news failed to load</span>
-            </div>
-          )
-          : (
-            <div style={{
-              background: 'var(--surface)',
-              border: '1px solid var(--border)',
-              borderRadius: 6,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: 80,
-            }}>
-              <span className="pulse" style={{ color: 'var(--text-3)', fontSize: 12 }}>
-                Loading fund news…
-              </span>
+          {activeTab === 'indicators' && (
+            <div className="page-content">
+              {timelineBlock}
+              <BucketChart buckets={data!.buckets} holdings={data!.holdings} onPositionClick={openDrawer} />
+              <div className="kpi-grid">{kpiStrip}</div>
             </div>
           )}
 
-        {/* Bucket Chart + Movers */}
-        <div className="grid-auto">
-          <BucketChart buckets={data!.buckets} holdings={data!.holdings} onPositionClick={openDrawer} />
-          {movers.data
-            ? <MoversPanel data={movers.data} onTickerClick={handleTickerClick} />
-            : movers.isError
-            ? (
-              <div style={{
-                background: 'var(--surface)',
-                border: '1px solid var(--border)',
-                borderRadius: 6,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: 16,
-              }}>
-                <span style={{ color: 'var(--red)', fontSize: 12 }}>
-                  Movers failed to load
-                </span>
-              </div>
-            )
-            : (
-              <div style={{
-                background: 'var(--surface)',
-                border: '1px solid var(--border)',
-                borderRadius: 6,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
-                <span className="pulse" style={{ color: 'var(--text-3)', fontSize: 12 }}>
-                  Loading movers…
-                </span>
-              </div>
-            )}
-        </div>
-
-        {/* LLM Insight */}
-        <LLMInsight
-          data={analysis.data}
-          isLoading={analysis.isLoading || refreshAnalysis.isPending}
-          onRefresh={() => refreshAnalysis.mutate()}
-          tickerNames={tickerNames}
-          onTickerClick={handleTickerClick}
-        />
-
-        {/* Thesis Stack */}
-        <ThesisInsight
-          holdings={data!.holdings}
-          strategy={strategyQuery.data}
-          isLoading={strategyQuery.isLoading || refreshStrategy.isPending}
-          onRefresh={() => refreshStrategy.mutate()}
-          tickerNames={tickerNames}
-          onTickerClick={handleTickerClick}
-        />
-
-        {/* Holdings Table */}
-        <div style={{
-          background: 'var(--surface)',
-          border: '1px solid var(--border)',
-          borderRadius: 6,
-          overflow: 'hidden',
-        }}>
-          <div style={{
-            padding: '10px 18px',
-            borderBottom: '1px solid var(--border)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}>
-            <span style={{ fontSize: 11, color: 'var(--text-2)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-              Holdings &nbsp;
-              <span style={{ color: 'var(--text-3)' }}>
-                {statusFilter ? `${data!.holdings.filter(h => h.status === statusFilter).length} shown` : `${data!.holdings.length} positions`}
-              </span>
-            </span>
-            <DeltaBadge
-              newCount={data!.delta.new_count}
-              closedCount={data!.delta.closed_count}
-              increasedCount={data!.delta.increased_count}
-              decreasedCount={data!.delta.decreased_count}
-              filter={statusFilter}
-              onFilter={setStatusFilter}
+          <div className="page-content">
+            <LLMInsight
+              data={analysis.data}
+              isLoading={analysis.isLoading || refreshAnalysis.isPending}
+              onRefresh={() => refreshAnalysis.mutate()}
+              tickerNames={tickerNames}
+              onTickerClick={handleTickerClick}
             />
+            <ThesisInsight
+              holdings={data!.holdings}
+              strategy={strategyQuery.data}
+              isLoading={strategyQuery.isLoading || refreshStrategy.isPending}
+              onRefresh={() => refreshStrategy.mutate()}
+              tickerNames={tickerNames}
+              onTickerClick={handleTickerClick}
+            />
+            <PanelShell label="Holdings" flush>
+              <div style={{
+                padding: '10px 16px',
+                borderBottom: '1px solid var(--border)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}>
+                <span style={{ fontSize: 11, color: 'var(--text-3)' }}>
+                  {statusFilter
+                    ? `${data!.holdings.filter(h => h.status === statusFilter).length} shown`
+                    : `${data!.holdings.length} positions`}
+                </span>
+                <DeltaBadge
+                  newCount={data!.delta.new_count}
+                  closedCount={data!.delta.closed_count}
+                  increasedCount={data!.delta.increased_count}
+                  decreasedCount={data!.delta.decreased_count}
+                  filter={statusFilter}
+                  onFilter={setStatusFilter}
+                />
+              </div>
+              <HoldingsTable holdings={data!.holdings} statusFilter={statusFilter} onTickerClick={handleTickerClick} />
+            </PanelShell>
           </div>
-          <HoldingsTable holdings={data!.holdings} statusFilter={statusFilter} onTickerClick={handleTickerClick} />
-        </div>
-      </div>
-      </main>
+        </main>
       </div>
 
       <CompanyDrawer

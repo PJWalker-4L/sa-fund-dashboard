@@ -14,11 +14,13 @@ export default function LLMInsight({ data, isLoading, onRefresh, tickerNames, on
   const [collapsed, setCollapsed] = useState(false)
 
   return (
-    <div style={{
-      background: 'var(--surface)',
+    <div className="nexus-surface" style={{
+      backgroundColor: 'var(--surface)',
+      backgroundImage: 'var(--grid)',
+      backgroundSize: '42px 42px',
       border: '1px solid var(--border)',
-      borderRadius: 6,
       padding: '12px 18px',
+      boxShadow: '0 4px 32px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.025)',
     }}>
       <div style={{
         display: 'flex',
@@ -36,7 +38,6 @@ export default function LLMInsight({ data, isLoading, onRefresh, tickerNames, on
               color: 'var(--text-3)',
               background: 'var(--surface-hi)',
               padding: '1px 6px',
-              borderRadius: 3,
               letterSpacing: '0.05em',
             }}>
               CACHED
