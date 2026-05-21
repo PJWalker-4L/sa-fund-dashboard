@@ -156,3 +156,20 @@ class HistoryResponse(BaseModel):
     annotations: list[HistoryAnnotation]
     performance_badges: list[PerformanceBadge]
     disclaimer: str
+
+
+class FundNewsItem(BaseModel):
+    title: str
+    link: str
+    publisher: str
+    published: int
+    source: str  # sec | holding | keyword
+    ticker: Optional[str] = None
+    relevance_score: int = 0
+
+
+class FundNewsResponse(BaseModel):
+    items: list[FundNewsItem]
+    sec_count: int
+    holding_count: int
+    keyword_count: int

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { fetchHoldings, fetchAnalysis, fetchMovers, triggerRefresh, fetchAlpha, checkNewFiling, fetchStrategy, invalidateStrategyCache, invalidateAnalysisCache, fetchHistory } from './api'
+import { fetchHoldings, fetchAnalysis, fetchMovers, triggerRefresh, fetchAlpha, checkNewFiling, fetchStrategy, invalidateStrategyCache, invalidateAnalysisCache, fetchHistory, fetchFundNews } from './api'
 import StatusBar from './components/StatusBar'
 import KPICard from './components/KPICard'
 import BucketChart from './components/BucketChart'
@@ -12,6 +12,7 @@ import HoldingsTable from './components/HoldingsTable'
 import CompanyDrawer from './components/CompanyDrawer'
 import ChatPanel from './components/ChatPanel'
 import TimelineChart from './components/TimelineChart'
+import FundNewsPanel from './components/FundNewsPanel'
 import { buildTickerNameMap } from './components/LinkedTickerText'
 import type { HoldingRow } from './types'
 
@@ -71,6 +72,12 @@ export default function App() {
     queryKey: ['history'],
     queryFn: fetchHistory,
     staleTime: 4 * 3600_000,
+  })
+  const fundNews = useQuery({
+    queryKey: ['fund-news'],
+    queryFn: fetchFundNews,
+    staleTime: 12 * 3600_000,
+    enabled: !!data,
   })
   const filingCheck = useQuery({
     queryKey: ['filing-check'],
@@ -293,6 +300,37 @@ export default function App() {
             }}>
               <span className="pulse" style={{ color: 'var(--text-3)', fontSize: 12 }}>
                 Loading timeline…
+              </span>
+            </div>
+          )}
+
+        {/* Fund News Feed */}
+        {fundNews.data
+          ? <FundNewsPanel data={fundNews.data} onTickerClick={handleTickerClick} />
+          : fundNews.isError
+          ? (
+            <div style={{
+              background: 'var(--surface)',
+              border: '1px solid var(--border)',
+              borderRadius: 6,
+              padding: 16,
+              textAlign: 'center',
+            }}>
+              <span style={{ color: 'var(--red)', fontSize: 12 }}>Fund news failed to load</span>
+            </div>
+          )
+          : (
+            <div style={{
+              background: 'var(--surface)',
+              border: '1px solid var(--border)',
+              borderRadius: 6,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: 80,
+            }}>
+              <span className="pulse" style={{ color: 'var(--text-3)', fontSize: 12 }}>
+                Loading fund news…
               </span>
             </div>
           )}

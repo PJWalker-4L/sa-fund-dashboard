@@ -1,0 +1,370 @@
+{
+  "ts": 1779329550.0556028,
+  "data": {
+    "items": [
+      {
+        "title": "13F-HR filed — Q1 2026 ($13.7B reported notional)",
+        "link": "https://www.sec.gov/Archives/edgar/data/2045724/0002045724-26-000008/0002045724-26-000008-index.htm",
+        "publisher": "SEC EDGAR",
+        "published": 1779055200,
+        "source": "sec",
+        "ticker": null,
+        "relevance_score": 100
+      },
+      {
+        "title": "13F-HR filed — Q4 2025 ($5.5B reported notional)",
+        "link": "https://www.sec.gov/Archives/edgar/data/2045724/0002045724-26-000002/0002045724-26-000002-index.htm",
+        "publisher": "SEC EDGAR",
+        "published": 1770764400,
+        "source": "sec",
+        "ticker": null,
+        "relevance_score": 100
+      },
+      {
+        "title": "13F-HR filed — Q3 2025 ($4.1B reported notional)",
+        "link": "https://www.sec.gov/Archives/edgar/data/2045724/0002045724-25-000008/0002045724-25-000008-index.htm",
+        "publisher": "SEC EDGAR",
+        "published": 1763074800,
+        "source": "sec",
+        "ticker": null,
+        "relevance_score": 100
+      },
+      {
+        "title": "13F-HR filed — Q2 2025 ($2.1B reported notional)",
+        "link": "https://www.sec.gov/Archives/edgar/data/2045724/0002045724-25-000006/0002045724-25-000006-index.htm",
+        "publisher": "SEC EDGAR",
+        "published": 1755122400,
+        "source": "sec",
+        "ticker": null,
+        "relevance_score": 100
+      },
+      {
+        "title": "13F-HR filed — Q1 2025 ($1.0B reported notional)",
+        "link": "https://www.sec.gov/Archives/edgar/data/2045724/0002045724-25-000002/0002045724-25-000002-index.htm",
+        "publisher": "SEC EDGAR",
+        "published": 1747173600,
+        "source": "sec",
+        "ticker": null,
+        "relevance_score": 100
+      },
+      {
+        "title": "13F-HR filed — Q4 2024 ($255M reported notional)",
+        "link": "https://www.sec.gov/Archives/edgar/data/2045724/0000935836-25-000120/0000935836-25-000120-index.htm",
+        "publisher": "SEC EDGAR",
+        "published": 1739314800,
+        "source": "sec",
+        "ticker": null,
+        "relevance_score": 100
+      },
+      {
+        "title": "Leopold Aschenbrenner's 'Situational Awareness' Files 13F Quarterly Investment Disclosure - Yahoo Finance",
+        "link": "https://news.google.com/rss/articles/CBMitwFBVV95cUxOMWtmeVdsU0ktRm1ZMlZPX3RwRk9GLTNRY3djYnp1XzljQk9DakY0cXdoYzc1Q3ZubkFGN3FMdHpRTE9RZ3RPN1hlTE8tU2c5Q1huNVJzdHNxRHBfX2pUYWJuWVdCVUdRVGFoQ3p0aS1tSnZBMlNMOVhOWXFUM2VTT3I4cEdPSENvSWtGWDQxd0NITzZ1NFp1d2dERWVSaDBEaGo2c3IwY1ZIemV0d0hvNFFheHZTRGs?oc=5",
+        "publisher": "Yahoo Finance",
+        "published": 1779126219,
+        "source": "keyword",
+        "ticker": null,
+        "relevance_score": 95
+      },
+      {
+        "title": "Former OpenAI Researcher Leopold Aschenbrenner's 13F and the Illusion of Transparency - Moomoo",
+        "link": "https://news.google.com/rss/articles/CBMirgFBVV95cUxQS2hkN3R5SS1GcXNZc1JPcXpsR2dyQkE1MERzVTlQeTVOdTdWNjRBTTNVYWdxUzUtUUVYWkdlUmQxWXRndDdkUWItNHhwNjNydVRWRlJqQlhDR090SDRCMzNVakFLSUtxS2xTdEd6VjAtVUlxN2NzWjZKZnR3RkZFNGpiLVZzWmI1REtmbHEwQmtvRmVOM3RVMk13ZGtWN3VaenVGRER3VUw0MHBXTmc?oc=5",
+        "publisher": "Moomoo",
+        "published": 1779182660,
+        "source": "keyword",
+        "ticker": null,
+        "relevance_score": 80
+      },
+      {
+        "title": "Leopold Aschenbrenner's Q1 2026 13F: $8.5B Bet Against AI Chips - Mena FN",
+        "link": "https://news.google.com/rss/articles/CBMikwFBVV95cUxQLU4wcW9Qa1daSEt2U250RFVvQlJhSkJtcTlyUmFtZVNpUEFvbnFxclpleGdkMHIxeW5TQ29fcXJtYXF1WXRDREw4c2JFbzRWb1FUOER3bEhUWE9fMDAxMjBCYzlJVm1mcUlBM3Z0VWIzT2JTcWJMR0VpNzJEZzd5TnFOMTU5MFFGdmpoaWJXdTVsVXc?oc=5",
+        "publisher": "Mena FN",
+        "published": 1779168308,
+        "source": "keyword",
+        "ticker": null,
+        "relevance_score": 80
+      },
+      {
+        "title": "Fund Update: Leopold Aschenbrenner's Situational Awareness LP Just Disclosed New Holdings - Quiver Quantitative",
+        "link": "https://news.google.com/rss/articles/CBMixAFBVV95cUxPaFZqcmJwZ1kxNTh6LThfTzFOWmI3OFVqQUNLN0xiX3BJdURwTHZLWnJKVHZucGk5STA2TlBWUTlHYzZFREZkUjNJeFRzS2tqaXhTMFRIMjRoNTZlNkJEV3EyTXRDWVl5UXlMMjEtM3hRSGI2LW5nVmRLYUdFUHF5OGJTWDF1Qm1mLUplc3JhQUlUb29qSHZaekZTcEcwbUJmSWVyWkhoUG11S1JwZ0N1aVVHRDRkbWc0M19ONHVqQ1NwTTds?oc=5",
+        "publisher": "Quiver Quantitative",
+        "published": 1779099840,
+        "source": "keyword",
+        "ticker": null,
+        "relevance_score": 80
+      },
+      {
+        "title": "Leopold Aschenbrenner's Situational Awareness Fund Bought Bloom Energy Stock Before a 176% Run. Here Is the Artificial Intelligence (AI) Stock He Owns That I Think Will Go Parabolic Next. - The Motley Fool",
+        "link": "https://news.google.com/rss/articles/CBMilwFBVV95cUxQYWFUMTl0NWFLWUlZbVRxQl9Zc2tjNVI2bUdjNlh4b3k0OUhOWWJXYmlvaHVqV1dSR0Q4dnZmRkFOWFlzZ29kcUJhSDdmQVpHZy1IS2dvZnVvT3lYY3pCN3NPQU9ZLTFUXzUwWHlSU0wwUENRcFI1QTVVb1hNTkdkcjQ1TC1pY3pXLUZHS1RGajFVcWdFbDlV?oc=5",
+        "publisher": "The Motley Fool",
+        "published": 1777964400,
+        "source": "keyword",
+        "ticker": null,
+        "relevance_score": 80
+      },
+      {
+        "title": "Why Leopold Aschenbrenner’s AI hedge fund is betting big on power companies and Bitcoin miners to fuel the AI boom - Fortune",
+        "link": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxOeWhaM21TRUdXWEtiMHZYMGk1WjNNUlFiRlJNMklGYmxnXzFFWGcxTmd2NGNJM05vb0ZEN0NqNG5uSlhSNVh4cjBBX2lLTU9CSXZrQkt6V3JYZVhCSFhTTGd4dTduZjRlTEJqRFlXU3pzS0VvLWo1V3lvdTgxWjhTOXZ0UlI4dlVGYms5SlV5aEY1MHZYUWVtbDdPRWlGMEZtUUh3RWUtM3Jsc1FsekhScWdCTGJsdE8yRGNn?oc=5",
+        "publisher": "Fortune",
+        "published": 1772697600,
+        "source": "keyword",
+        "ticker": null,
+        "relevance_score": 80
+      },
+      {
+        "title": "AI hedge fund Situational Awareness ups stake in Core Scientific to 9.4% as CoreWeave note nears - Yahoo Finance",
+        "link": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxNenZkX1VydXlVdjE4N0RWY1NEYzNSUjZ4dllMa0xuODhfUlQwUHdaczZ5MHh2TG5fVFNXV2xVQ1BvMmZOajBqb2xkLTdxMHRPMm1QNGZDaC1sQVFoWUJPVGFOYzFsNmVud0dPeHRQS0RGV3dzTHZpUXMwU080ZlhBR2FSSEQ2YmE3?oc=5",
+        "publisher": "Yahoo Finance",
+        "published": 1760598000,
+        "source": "keyword",
+        "ticker": null,
+        "relevance_score": 80
+      },
+      {
+        "title": "Aschenbrenner’s picks and shovels - ForkLog",
+        "link": "https://news.google.com/rss/articles/CBMiZ0FVX3lxTFAwclhkUHpfaUpMTENQLVphLUp6cUt4RzFuMWR2dGhhUWUtMjJJUjZnZmZiQ21NTi1tQ1Rnek8wMTRkOGt4a05HM1VxTEhuUi1QN1RwSEN4MHlCTkdJLVdMZTBPVk5zMnM?oc=5",
+        "publisher": "ForkLog",
+        "published": 1779206269,
+        "source": "keyword",
+        "ticker": null,
+        "relevance_score": 65
+      },
+      {
+        "title": "24-year-old 'AI Stock Guru' Leopold Aschenbrenner’s fund purchases $137 billion in AI hardware put options - KuCoin",
+        "link": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxOLTc1djgxTUhvSUZlSEtfUTNYT0JGaXB5Ql9tTWdTZ0JiTTdfb0dmNlZOb1VrcnpwVTNlMjEtVk9mcGVfTERoc2phUW5oeENqSklLM3J3dXBDc2Y0ZEhiM2tTdVRjVVNqX1JjeWZXNklpMWM3SFZPbmZGZXp0Q0VDSDJPdHUwQjZLS21VT0V1d0NoUng2akFlc25McVFNMFFpS05ycV82a0ljTHZvTzZiU3BVaWRDYmpjSjZoWVVkcFlrOFU?oc=5",
+        "publisher": "KuCoin",
+        "published": 1779112465,
+        "source": "keyword",
+        "ticker": null,
+        "relevance_score": 65
+      },
+      {
+        "title": "Leopold Aschenbrenner just updated his stock portfolio - Finbold",
+        "link": "https://news.google.com/rss/articles/CBMigAFBVV95cUxQcE8waU93eHpfN3ZveEFaaGxtak9JX2V0c2dUUVVyRHBUUHI1OXlqczRiTkhZX2NIQ2FnakI4bFdkWE5sbmNEQUpVTS0wT2dZdF85ZVVuTERtdU95WVdVUG5NcnBaZjRWSUxIWVlVemhqSy1zb1pQVEFkTlNYV01lUg?oc=5",
+        "publisher": "Finbold",
+        "published": 1779109096,
+        "source": "keyword",
+        "ticker": null,
+        "relevance_score": 65
+      },
+      {
+        "title": "Former OpenAI Employee’s Hedge Fund Unveils Massive Nvidia and AI Chip Options Positions - Quiver Quantitative",
+        "link": "https://news.google.com/rss/articles/CBMiyAFBVV95cUxPWGJ3WDIwSjk3UmF0SWp0NEJrcnVMaEVPLVhiUzI3bjNoMkNzY09YX0t6emxLU0hRRU5PVkdtWGg2aElXU09OTUhPcS1XSWFlX2QxTjcxRnA5ekNRY0w0bFN5OUIxN3Z2WDMtdGZ6NDFxR1htb2paU0tsUWJOMDJ4bC1KeUNIVTFwa1pUODVyUEJMWmVVT29BU3NrUVBRYjkxX2JWSWc4bXBlUnNfSENiVUNreURIdmFIZXFxV0I2LV91UUZTRDlOUw?oc=5",
+        "publisher": "Quiver Quantitative",
+        "published": 1779102000,
+        "source": "keyword",
+        "ticker": null,
+        "relevance_score": 65
+      },
+      {
+        "title": "Leopold Aschenbrenner: The Visionary Behind a $5.5B AI Revolution - Phemex",
+        "link": "https://news.google.com/rss/articles/CBMiZkFVX3lxTE5sN0UzaThPNVVVR2tVUXZSSTZyTmFHU3dTemtFdnFzdjY4X29CQTlkQlBRR01VRnprSTI1UlEtRlU2SVhuQWhnYU5jeU9aQXZ1ME5OZW0zOWNISmdPRmMxNDhLWlBQUQ?oc=5",
+        "publisher": "Phemex",
+        "published": 1778482800,
+        "source": "keyword",
+        "ticker": null,
+        "relevance_score": 65
+      },
+      {
+        "title": "Ex-OpenAI researcher’s hedge fund reveals big Bitcoin miner bets in new SEC filing - Bitget",
+        "link": "https://news.google.com/rss/articles/CBMiXkFVX3lxTFBEVkVZdE9RbWZXNFFRNGhQVDk1V3Iyc2dubkN6ZFV3VEhOUlBsMkhkblhTSk15RnEya1lLOVFGb0lzMkRxdkp6dXQ3Q0RMWXhQZE5TR3BaeFVzcG9uQ2fSAWNBVV95cUxQRVBybXdlTDU2c1ZpaUFDYjBOd3JaYV9Db2d0djZxYTduOXdSVmNXWlBabmNIblplcjY0enlWb1V2ZllVbkNJbGJucXVmU3lYcERnMFkwM3J2aWpxcGttQldNNUU?oc=5",
+        "publisher": "Bitget",
+        "published": 1772611200,
+        "source": "keyword",
+        "ticker": null,
+        "relevance_score": 65
+      },
+      {
+        "title": "Ex-OpenAI Researcher Hedge Fund Bets Big on BTC Miners in SEC Filing - MEXC",
+        "link": "https://news.google.com/rss/articles/CBMiR0FVX3lxTE1kTVFrbHNORFAxY1p3TXYycUw1RmJndkZtT0FUM19DRkRUeklmdnZmSnNRSHZrUmw0b0FMWGh1NDY1SGhqeWxr?oc=5",
+        "publisher": "MEXC",
+        "published": 1772611200,
+        "source": "keyword",
+        "ticker": null,
+        "relevance_score": 65
+      },
+      {
+        "title": "How a 23-year-old former OpenAI researcher turned a viral AI prophecy into profit, with a $1.5 billion hedge fund and outsize influence from Silicon Valley to D.C. - Fortune",
+        "link": "https://news.google.com/rss/articles/CBMirgFBVV95cUxPai1JaE0wdUdOMmg0ZHd2eERhcktSZ0ctdzVxQkFGR1NpRGZaSDVod183VkthMlBXYmF4RGM1aUFGSVpTd1lrenRhUF9xSjZjclJGaUdqaVVQdF9oeXFSMnppenJNTFQ2cXFUWl9CRURuX29FQU9zX1A4Q2FPRHljQjUyN3NvZHBKTkdZelRXYmlIQ2taYTFFYjR5RDVsVE1VZThEY2RQeFRxaEhGeGc?oc=5",
+        "publisher": "Fortune",
+        "published": 1759906800,
+        "source": "keyword",
+        "ticker": null,
+        "relevance_score": 65
+      },
+      {
+        "title": "Markets in uproar over 24-year-old fund manager and former OpenAI researcher! Is the next big bet in the AI rally 'semiconductor defense' and 'power'? - Moomoo",
+        "link": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxPUHV3S0c5YWVyZXBJSDBFcFNNYWo1R1h3aHd0MFJacmpIX1BIZ3daRmVyUnAzTGYxWVJCNDVsbEV1ZGlSaVBnd3VuY2pGOTFrTjJwN285UVpYQmdLNTUxVWg0SlowdnI4RkNod2dJQkk2M0dSWXRVM0doZW1TSFc1Q1FkZGxXSFVSSlo1M09fdEdFVEFxUms5REgwZ0VBZ3NZRlpTd1oyeENzdXM?oc=5",
+        "publisher": "Moomoo",
+        "published": 1779195439,
+        "source": "keyword",
+        "ticker": null,
+        "relevance_score": 50
+      },
+      {
+        "title": "Ex-OpenAI Star's $13.7B Portfolio Exposed! Massive Chip PUTs, Adding SanDisk, All-In on Energy - Moomoo",
+        "link": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxNUkF3UXdxZE1Fdm9TWWlaRUFGTThGSlNnTFlpZWI1VzRLM0RDR2xnc2N2eVZGZ0g4RkgzM2dNVjhZLUVVWG9SREVwX016YVhTSVFRRDJWRFdMUzcyaE1JTl9uMmkwM3FoWlJHbFdRaFRpWm5mZEF3MU1jdHZScFNGOTRnUEpxTFliV0RRLVBtRUxnQ3h0VTViN0ZtbUhOd3dUN2kzMFdwdThFQQ?oc=5",
+        "publisher": "Moomoo",
+        "published": 1779189255,
+        "source": "keyword",
+        "ticker": null,
+        "relevance_score": 50
+      },
+      {
+        "title": "S&P 500: Why the March Sell-Off Was No Surprise and What the Monthly Chart Reveals - Investing.com",
+        "link": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxPYjBQSEtmNFY4eWRWQmY0eTQ2RTFDdGlLOVBtR0RvR0UyUlplNXc3MDJCZ2lrdlJaZ2xxUkdhUVlVRG1vaGlGUTJoNkhNNDVqblEwSmtmd2Fid3JzU2RqV3RTdkU0Z0dKMFBfZkZQdkRHVFdpNFRYU014RkNycUZpbEJJSDVicXZDVG14T1VpS3dyMlhQc2pPWXFaejdSMDh2UEhFZmgwLXFTN2NJSkgtenNhYU1SemZEdmJWeXlkWWpfdw?oc=5",
+        "publisher": "Investing.com",
+        "published": 1779096521,
+        "source": "keyword",
+        "ticker": null,
+        "relevance_score": 50
+      },
+      {
+        "title": "What One Former OpenAI Researcher's SEC Filing Tells You About The Real AI Race - Forbes",
+        "link": "https://news.google.com/rss/articles/CBMiywFBVV95cUxQU05iLWpzUnRKT3d6S290dGtxb3ZQMnFRM0V3d3hOaVYybk1KN2NRMEd5ck4zSXBjdDNlcktEeUxYV0lhUGJ4V2VRcDFxb0VlNzBRWUhmYkU0R1dONTQyZ3UydElYWXRUYXRXZjZsNWxsVllCMVdXaHpEZE1rZXpsSUpMU3l4dE0wMWd5aGxwQ0Voa1Jmenk5MlJrYWw1WXFKcXgxLUotN2FfRXpFakloVkxickpvd0VSX0xYdGJhLUkwdUluUVRnQUZ6WQ?oc=5",
+        "publisher": "Forbes",
+        "published": 1774681200,
+        "source": "keyword",
+        "ticker": null,
+        "relevance_score": 50
+      },
+      {
+        "title": "SBF's underling turned 225 million into 5.5 billion in just one year. - MEXC",
+        "link": "https://news.google.com/rss/articles/CBMiR0FVX3lxTE10LXVJN3JNNGpBLUNYRDlXRXZ4ai1SYlpGUWl4c0J3X3pic051SnhIajdjYThzbm91c2E1WUpOSzRJRmxoRUR3?oc=5",
+        "publisher": "MEXC",
+        "published": 1772784000,
+        "source": "keyword",
+        "ticker": null,
+        "relevance_score": 50
+      },
+      {
+        "title": "Dow Jones Futures Fall After Strong Nvidia Earnings; SpaceX Files For Huge IPO",
+        "link": "https://www.investors.com/market-trend/stock-market-today/dow-jones-futures-nvidia-earnings-stocks-rally-oil-prices-iran-deal-hopes/?src=A00220&yptr=yahoo",
+        "publisher": "Investor's Business Daily",
+        "published": 1779328412,
+        "source": "holding",
+        "ticker": "AVGO",
+        "relevance_score": 40
+      },
+      {
+        "title": "Is Micron (MU) Quietly Redefining Its AI Data Center Edge With Ultra‑Dense DDR5 Memory?",
+        "link": "https://finance.yahoo.com/sectors/technology/articles/micron-mu-quietly-redefining-ai-011620524.html",
+        "publisher": "Simply Wall St.",
+        "published": 1779326180,
+        "source": "holding",
+        "ticker": "MU",
+        "relevance_score": 40
+      },
+      {
+        "title": "Nvidia Tells Skeptical Investors That AI Is Ready to Go Mainstream",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/nvidia-gets-tepid-reaction-forecast-210054064.html",
+        "publisher": "Bloomberg",
+        "published": 1779322570,
+        "source": "holding",
+        "ticker": "AVGO",
+        "relevance_score": 40
+      },
+      {
+        "title": "Stock market today: Dow, S&P 500, Nasdaq futures slip as Wall Street shrugs off Nvidia earnings",
+        "link": "https://finance.yahoo.com/economy/live/stock-market-today-dow-sp-500-nasdaq-futures-slip-as-wall-street-shrugs-off-nvidia-earnings-232311657.html",
+        "publisher": "Yahoo Finance",
+        "published": 1779319391,
+        "source": "holding",
+        "ticker": "NVDA",
+        "relevance_score": 40
+      },
+      {
+        "title": "Why Bloom Energy Stock Bounced 8% Higher Today",
+        "link": "https://www.fool.com/investing/2026/05/20/why-bloom-energy-stock-bounced-8-higher-today/",
+        "publisher": "Motley Fool",
+        "published": 1779315081,
+        "source": "holding",
+        "ticker": "BE",
+        "relevance_score": 40
+      },
+      {
+        "title": "Nvidia Q1 earnings results: Top takeaways",
+        "link": "https://finance.yahoo.com/video/nvidia-q1-earnings-results-top-takeaways-213230096.html",
+        "publisher": "Yahoo Finance Video",
+        "published": 1779312750,
+        "source": "holding",
+        "ticker": "NVDA",
+        "relevance_score": 40
+      },
+      {
+        "title": "Intuit (INTU) Surpasses Q3 Earnings and Revenue Estimates",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/intuit-intu-surpasses-q3-earnings-212002830.html",
+        "publisher": "Zacks",
+        "published": 1779312002,
+        "source": "holding",
+        "ticker": "ORCL",
+        "relevance_score": 40
+      },
+      {
+        "title": "Chip Stocks Are on a Tear. Money Pros Weigh In on Whether the Rally Can Last.",
+        "link": "https://www.barrons.com/advisor/articles/chip-stocks-nvidia-micron-investings-56080d17?siteid=yhoof2&yptr=yahoo",
+        "publisher": "Barrons.com",
+        "published": 1779310740,
+        "source": "holding",
+        "ticker": "SMH",
+        "relevance_score": 40
+      },
+      {
+        "title": "Top Stock Reports for Johnson & Johnson, Oracle & Netflix",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/top-stock-reports-johnson-johnson-205700119.html",
+        "publisher": "Zacks",
+        "published": 1779310620,
+        "source": "holding",
+        "ticker": "ORCL",
+        "relevance_score": 40
+      },
+      {
+        "title": "Nvidia's Equity Investments Are Paying Off",
+        "link": "https://www.barrons.com/livecoverage/nvidia-earnings-stock-price-ai-chips-jensen-huang/card/nvidia-s-equity-investments-are-paying-off-oOoD25vdEtWLjzi7wg7j?siteid=yhoof2&yptr=yahoo",
+        "publisher": "Barrons.com",
+        "published": 1779310435,
+        "source": "holding",
+        "ticker": "CRWV",
+        "relevance_score": 40
+      },
+      {
+        "title": "Is Taiwan Semiconductor Manufacturing (TSM) One of the Best Semiconductor Stocks With the Highest Upside Potential Right Now?",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/taiwan-semiconductor-manufacturing-tsm-one-204003317.html",
+        "publisher": "Insider Monkey",
+        "published": 1779309603,
+        "source": "holding",
+        "ticker": "TSM",
+        "relevance_score": 40
+      },
+      {
+        "title": "Is Bloom Energy (BE) One of the Best Climate Change Stocks to Buy According to Analysts?",
+        "link": "https://finance.yahoo.com/sectors/energy/articles/bloom-energy-one-best-climate-183713505.html",
+        "publisher": "Insider Monkey",
+        "published": 1779302233,
+        "source": "holding",
+        "ticker": "BE",
+        "relevance_score": 40
+      },
+      {
+        "title": "Sandisk Stock Gets More Than $2,000 Price Target Boost From Citi",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/sandisk-stock-gets-more-2-181703719.html",
+        "publisher": "GuruFocus.com",
+        "published": 1779301023,
+        "source": "holding",
+        "ticker": "SNDK",
+        "relevance_score": 40
+      },
+      {
+        "title": "CoreWeave Building Up Enterprise Business, Led By Financial Services",
+        "link": "https://www.investors.com/news/technology/coreweave-stock-crwv-enterprise-market-financial-services-ai-workloads/?src=A00220&yptr=yahoo",
+        "publisher": "Investor's Business Daily",
+        "published": 1779287670,
+        "source": "holding",
+        "ticker": "CRWV",
+        "relevance_score": 40
+      }
+    ],
+    "sec_count": 6,
+    "holding_count": 20,
+    "keyword_count": 20
+  }
+}

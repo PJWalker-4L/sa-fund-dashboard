@@ -11,12 +11,13 @@ import llm_analyzer
 import company_client
 import alpha_calculator
 import history_builder
+import fund_news_client
 from sectors import classify, thesis_role as get_thesis_role
 from models import (
     HoldingsResponse, AnalysisResponse, FilingMeta, HoldingRow,
     DeltaSummary, BucketAllocation, MoversResponse, MoverItem,
     CompanyInfoResponse, NewsItem, AlphaResponse, StrategyResponse,
-    ChatRequest, ChatResponse, HistoryResponse,
+    ChatRequest, ChatResponse, HistoryResponse, FundNewsResponse,
 )
 
 app = FastAPI(title="SA Fund Dashboard API", version="1.0.0")
@@ -211,6 +212,7 @@ async def refresh():
     state_manager.invalidate_holdings_cache()
     state_manager.invalidate_llm_caches()
     state_manager.invalidate_history_cache()
+    fund_news_client.invalidate_fund_news_cache()
     try:
         _, curr_meta, _, _ = _fetch_live()
         return {"status": "refreshed", "period": curr_meta["period_of_report"]}
@@ -367,6 +369,18 @@ async def chat(req: ChatRequest):
         raise HTTPException(status_code=500, detail=f"LLM call failed: {e}")
 
     return ChatResponse(response=reply)
+
+
+@app.get("/api/fund-news", response_model=FundNewsResponse)
+async def get_fund_news():
+    try:
+        curr_df, _, _, _ = _get_data()
+    except Exception as e:
+        raise _http_503("SEC data fetch failed", e)
+    try:
+        return fund_news_client.build_fund_news(curr_df)
+    except Exception as e:
+        raise _http_503("Fund news fetch failed", e)
 
 
 @app.get("/api/company/{ticker}", response_model=CompanyInfoResponse)

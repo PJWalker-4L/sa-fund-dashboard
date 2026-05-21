@@ -62,6 +62,17 @@ def _parse_news_item(n: dict) -> dict:
     }
 
 
+def get_ticker_news(ticker: str, limit: int = 2) -> list[dict]:
+    """Fetch recent Yahoo Finance news for a ticker (best-effort)."""
+    key = ticker.upper()
+    try:
+        news_raw = _yf.Ticker(key).news or []
+    except Exception:
+        return []
+    items = [_parse_news_item(n) for n in news_raw if n]
+    return [i for i in items if i.get("title")][:limit]
+
+
 def get_company(ticker: str) -> dict:
     key = ticker.upper()
     cache = _load_cache()
@@ -79,7 +90,7 @@ def get_company(ticker: str) -> dict:
 
     news_raw: list = []
     try:
-        news_raw = t.news or []
+        news_raw = _yf.Ticker(key).news or []
     except Exception:
         pass
 

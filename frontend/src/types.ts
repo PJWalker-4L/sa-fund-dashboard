@@ -155,3 +155,20 @@ export interface HistoryResponse {
   performance_badges: PerformanceBadge[]
   disclaimer: string
 }
+
+export interface FundNewsItem {
+  title: string
+  link: string
+  publisher: string
+  published: number
+  source: 'sec' | 'holding' | 'keyword'
+  ticker: string | null
+  relevance_score: number
+}
+
+export interface FundNewsResponse {
+  items: FundNewsItem[]
+  sec_count: number
+  holding_count: number
+  keyword_count: number
+}
