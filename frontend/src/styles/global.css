@@ -38,6 +38,103 @@ html, body {
 
 button { font-family: var(--font); }
 
+/* ─── Responsive breakpoints ─────────────────────────────────────────── */
+
+/* Grid: 1-column on mobile, 2 on tablet+ */
+.grid-auto {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+@media (min-width: 640px) {
+  .grid-auto { grid-template-columns: 1fr 1fr; }
+}
+
+/* Grid: always 2 columns (KPI strip) */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+@media (min-width: 900px) {
+  .kpi-grid { grid-template-columns: repeat(6, 1fr); }
+}
+
+/* Layer grid: 1 col → 2 col → 3 col */
+.layer-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+@media (min-width: 500px) {
+  .layer-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (min-width: 900px) {
+  .layer-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* Content padding adapts to viewport */
+.page-content {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+@media (min-width: 640px) {
+  .page-content { padding: 18px 24px; }
+}
+
+/* Hide on mobile */
+@media (max-width: 480px) {
+  .hide-mobile { display: none !important; }
+}
+
+/* Drawers / Panels: full-screen on mobile */
+.drawer-panel {
+  width: 340px;
+}
+.chat-panel {
+  width: 320px;
+  min-width: 320px;
+}
+@media (max-width: 600px) {
+  .drawer-panel {
+    width: 100vw !important;
+  }
+  .chat-panel {
+    width: 100vw !important;
+    min-width: 0 !important;
+  }
+}
+
+/* Filing banner: stack on mobile */
+@media (max-width: 480px) {
+  .filing-banner {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+}
+
+/* BucketChart: row on tablet+, column on mobile */
+.bucket-chart-layout {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+@media (max-width: 500px) {
+  .bucket-chart-layout {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .bucket-chart-layout .bucket-pie {
+    display: flex;
+    justify-content: center;
+  }
+}
+
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.4; }

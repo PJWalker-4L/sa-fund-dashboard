@@ -53,9 +53,7 @@ export default function ChatPanel({ onClose }: Props) {
   }
 
   return (
-    <div style={{
-      width: 320,
-      minWidth: 320,
+    <div className="chat-panel" style={{
       borderRight: '1px solid var(--border)',
       background: 'var(--surface)',
       display: 'flex',

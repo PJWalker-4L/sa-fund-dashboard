@@ -122,11 +122,7 @@ export default function ThesisInsight({ holdings, strategy, isLoading, onRefresh
       {!collapsed && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {/* Layer grid */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: 8,
-          }}>
+          <div className="layer-grid">
             {LAYERS.map(layer => {
               const positions = layerMap[layer.key] ?? []
               const val = layerValue(layer.key)

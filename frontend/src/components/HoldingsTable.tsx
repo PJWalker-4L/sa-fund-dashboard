@@ -86,8 +86,8 @@ export default function HoldingsTable({ holdings, statusFilter, onTickerClick }:
   }
 
   return (
-    <div style={{ overflowX: 'auto' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 520 }}>
         <thead>
           <tr style={{ background: 'var(--surface)' }}>
             <th style={{ width: 3, borderBottom: '1px solid var(--border)', padding: 0 }} />
@@ -118,7 +118,7 @@ export default function HoldingsTable({ holdings, statusFilter, onTickerClick }:
                 }}
               >
                 <td style={{ width: 3 }} />
-                <td style={{ padding: '7px 12px', maxWidth: 260 }}>
+                <td style={{ padding: '7px 12px', maxWidth: 200 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                     {h.ticker && (
                       <span
@@ -128,7 +128,7 @@ export default function HoldingsTable({ holdings, statusFilter, onTickerClick }:
                           fontSize: 11,
                           fontWeight: 700,
                           color: 'var(--blue)',
-                          minWidth: 40,
+                          minWidth: 36,
                           cursor: onTickerClick ? 'pointer' : 'default',
                           textDecoration: onTickerClick ? 'underline' : 'none',
                           textDecorationColor: 'rgba(56,189,248,0.4)',
@@ -149,11 +149,11 @@ export default function HoldingsTable({ holdings, statusFilter, onTickerClick }:
                     </span>
                   </div>
                 </td>
-                <td style={{ padding: '7px 12px' }}>
+                <td style={{ padding: '7px 8px' }}>
                   {h.putCall ? (
                     <span style={{
                       fontSize: 10,
-                      padding: '2px 8px',
+                      padding: '2px 6px',
                       borderRadius: 3,
                       background: h.putCall === 'Call'
                         ? 'rgba(56,189,248,0.12)'
@@ -161,6 +161,7 @@ export default function HoldingsTable({ holdings, statusFilter, onTickerClick }:
                       color: h.putCall === 'Call' ? 'var(--blue)' : 'var(--orange)',
                       fontWeight: 700,
                       letterSpacing: '0.04em',
+                      whiteSpace: 'nowrap',
                     }}>
                       {h.putCall.toUpperCase()}
                     </span>
@@ -168,16 +169,16 @@ export default function HoldingsTable({ holdings, statusFilter, onTickerClick }:
                     <span style={{ fontSize: 10, color: 'var(--text-3)' }}>SHARE</span>
                   )}
                 </td>
-                <td style={{ padding: '7px 12px', fontFamily: 'var(--mono)', fontSize: 12, textAlign: 'right', color: 'var(--text-2)' }}>
+                <td style={{ padding: '7px 12px', fontFamily: 'var(--mono)', fontSize: 12, textAlign: 'right', color: 'var(--text-2)', whiteSpace: 'nowrap' }}>
                   {fmtShares(h.sshPrnamt)}
                 </td>
-                <td style={{ padding: '7px 12px', fontFamily: 'var(--mono)', fontSize: 12, textAlign: 'right' }}>
+                <td style={{ padding: '7px 12px', fontFamily: 'var(--mono)', fontSize: 12, textAlign: 'right', whiteSpace: 'nowrap' }}>
                   {fmtValue(h.value)}
                 </td>
-                <td style={{ padding: '7px 12px', fontFamily: 'var(--mono)', fontSize: 12, textAlign: 'right', color: 'var(--text-2)' }}>
+                <td style={{ padding: '7px 12px', fontFamily: 'var(--mono)', fontSize: 12, textAlign: 'right', color: 'var(--text-2)', whiteSpace: 'nowrap' }}>
                   {totalAum > 0 ? (h.value / totalAum * 100).toFixed(1) + '%' : '—'}
                 </td>
-                <td style={{ padding: '7px 12px', textAlign: 'right' }}>
+                <td style={{ padding: '7px 12px', textAlign: 'right', whiteSpace: 'nowrap' }}>
                   <PctCell h={h} />
                 </td>
               </tr>

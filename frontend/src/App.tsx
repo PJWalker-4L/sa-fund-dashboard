@@ -172,14 +172,14 @@ export default function App() {
       />
 
       {filingCheck.data?.has_new && bannerDismissed !== filingCheck.data.latest_accession && (
-        <div style={{
+        <div className="filing-banner" style={{
           background: 'rgba(251,191,36,0.08)',
           borderBottom: '1px solid rgba(251,191,36,0.25)',
-          padding: '8px 24px',
+          padding: '8px 16px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: 12,
+          gap: 8,
         }}>
           <span style={{ fontSize: 12, color: 'var(--yellow)' }}>
             Neues 13F-HR Filing verfügbar &nbsp;·&nbsp;
@@ -218,18 +218,10 @@ export default function App() {
         {chatOpen && <ChatPanel onClose={() => setChatOpen(false)} />}
 
       <main style={{ flex: 1, overflowY: 'auto', minWidth: 0 }}>
-      <div style={{
-        padding: '18px 24px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 14,
-        maxWidth: 1400,
-        margin: '0 auto',
-        width: '100%',
-      }}>
+      <div className="page-content">
 
         {/* KPI Strip */}
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        <div className="kpi-grid">
           <KPICard
             label="Total 13F AUM"
             value={fmtAUM(data!.total_aum_thousands)}
@@ -338,7 +330,7 @@ export default function App() {
           )}
 
         {/* Bucket Chart + Movers */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+        <div className="grid-auto">
           <BucketChart buckets={data!.buckets} holdings={data!.holdings} onPositionClick={openDrawer} />
           {movers.data
             ? <MoversPanel data={movers.data} onTickerClick={handleTickerClick} />

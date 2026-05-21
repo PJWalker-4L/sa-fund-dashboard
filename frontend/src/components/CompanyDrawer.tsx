@@ -71,9 +71,8 @@ export default function CompanyDrawer({ ticker, holding, totalAum, onClose }: Pr
       />
 
       {/* Drawer */}
-      <div style={{
+      <div className="drawer-panel" style={{
         position: 'fixed', top: 0, right: 0, bottom: 0,
-        width: 340,
         background: 'var(--surface)',
         borderLeft: '1px solid var(--border)',
         zIndex: 50,

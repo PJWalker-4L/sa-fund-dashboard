@@ -121,8 +121,8 @@ export default function BucketChart({ buckets, holdings, topN = 10, onPositionCl
       </div>
 
       {/* Chart + Legend */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <div style={{ flex: '0 0 180px' }}>
+      <div className="bucket-chart-layout">
+        <div className="bucket-pie" style={{ flex: '0 0 180px' }}>
           <ResponsiveContainer width={180} height={180}>
             <PieChart>
               <Pie
