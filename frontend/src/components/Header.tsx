@@ -1,4 +1,4 @@
-﻿import type { FilingMeta } from '../types'
+import type { FilingMeta } from '../types'
 
 export type DashboardTab = 'portfolio' | 'indicators'
 

@@ -31,7 +31,7 @@ interface Props {
 
 const WIDTH = 960
 const HEIGHT = 520
-const DOT_STEP = 9
+const DOT_STEP = 5
 
 function generateCountryDots(
   country: CountryFeature,
@@ -107,7 +107,7 @@ export default function HoldingsMap({
   const [hoveredCountryId, setHoveredCountryId] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch('/countries-110m.json')
+    fetch('/countries-50m.json')
       .then(r => r.json())
       .then((data: Topology) => {
         setWorldData(data)
@@ -210,11 +210,11 @@ export default function HoldingsMap({
           const isHovered = hoveredCountryId === id
 
           const countryFeature = countries.find(c => String(c.id ?? '') === id)
-          const borderOpacity = isHovered && hasHoldings ? 0.9 : hasHoldings ? 0.7 : isHovered ? 0.4 : 0.2
-          const borderStroke = isHovered && hasHoldings ? '#00c8e0' : hasHoldings ? 'rgba(0,200,224,0.45)' : '#1a2a4a'
-          const borderWidth = isHovered && hasHoldings ? 1.5 : hasHoldings ? 1.0 : 0.6
-          const dotOpacity = isHovered && hasHoldings ? 0.9 : isHovered ? 0.6 : hasHoldings ? 0.65 : 0.22
-          const dotColor = hasHoldings ? '#00c8e0' : 'rgba(180,215,255,0.7)'
+          const borderOpacity = isHovered && hasHoldings ? 1.0 : hasHoldings ? 0.85 : isHovered ? 0.5 : 0.35
+          const borderStroke = isHovered && hasHoldings ? '#00c8e0' : hasHoldings ? 'rgba(0,200,224,0.6)' : '#1e3058'
+          const borderWidth = isHovered && hasHoldings ? 1.2 : hasHoldings ? 0.8 : 0.5
+          const dotOpacity = isHovered && hasHoldings ? 0.95 : isHovered ? 0.7 : hasHoldings ? 0.75 : 0.28
+          const dotColor = hasHoldings ? '#00c8e0' : 'rgba(140,185,230,0.8)'
 
           return (
             <g
@@ -229,46 +229,20 @@ export default function HoldingsMap({
                   stroke={borderStroke}
                   strokeWidth={borderWidth}
                   opacity={borderOpacity}
-                  style={{ transition: 'all 0.2s ease' }}
+                  style={{ transition: 'opacity 0.15s ease, stroke 0.15s ease' }}
                 />
               )}
 
-              {country.dots.map((dot, index) => {
-                const shouldAnimate = index % 5 === 0
-                if (shouldAnimate) {
-                  return (
-                    <motion.circle
-                      key={index}
-                      cx={dot.x}
-                      cy={dot.y}
-                      r={1.4}
-                      fill={dotColor}
-                      initial={{ opacity: dotOpacity }}
-                      animate={{
-                        opacity: [dotOpacity, dotOpacity + 0.2, dotOpacity],
-                        scale: [1, 1.2, 1],
-                      }}
-                      transition={{
-                        duration: 2.5,
-                        repeat: Number.POSITIVE_INFINITY,
-                        ease: 'easeInOut',
-                        delay: (index % 20) * 0.1,
-                      }}
-                    />
-                  )
-                }
-                return (
-                  <circle
-                    key={index}
-                    cx={dot.x}
-                    cy={dot.y}
-                    r={1.4}
-                    fill={dotColor}
-                    opacity={dotOpacity}
-                    style={{ transition: 'all 0.3s ease' }}
-                  />
-                )
-              })}
+              {country.dots.map((dot, index) => (
+                <circle
+                  key={index}
+                  cx={dot.x}
+                  cy={dot.y}
+                  r={1.0}
+                  fill={dotColor}
+                  opacity={dotOpacity}
+                />
+              ))}
             </g>
           )
         })}
