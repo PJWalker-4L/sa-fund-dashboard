@@ -1,0 +1,12 @@
+---
+alwaysApply: true
+title: General Development Rules
+description: General guidelines for AI assistance in development
+tags: [general, development, workflow]
+---
+
+# General Development Rules
+
+## Server Management
+
+- **Do not** start a local development server (`npm run dev`) unless the user explicitly asks you to.
