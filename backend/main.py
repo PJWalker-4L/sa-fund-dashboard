@@ -373,8 +373,11 @@ async def get_fund_news():
 
 @app.get("/api/company/{ticker}", response_model=CompanyInfoResponse)
 async def get_company(ticker: str):
+    clean = ticker.strip().upper()
+    if not clean or not clean.replace(".", "").replace("-", "").isalnum():
+        raise HTTPException(status_code=400, detail="Invalid ticker")
     try:
-        data = company_client.get_company(ticker)
+        data = company_client.get_company(clean)
         return CompanyInfoResponse(
             ticker=data["ticker"],
             name=data["name"],

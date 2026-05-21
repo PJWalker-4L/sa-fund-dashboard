@@ -30,8 +30,10 @@ export default function App() {
   }
 
   function handleTickerClick(ticker: string) {
-    const holding = data?.holdings.find(h => h.ticker === ticker) ?? null
-    setSelectedTicker(ticker)
+    const key = ticker.trim()
+    if (!key) return
+    const holding = data?.holdings.find(h => h.ticker === key) ?? null
+    setSelectedTicker(key)
     setSelectedHolding(holding)
   }
 

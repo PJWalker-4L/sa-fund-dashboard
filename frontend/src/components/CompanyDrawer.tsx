@@ -32,14 +32,17 @@ function Skeleton({ width = '100%', height = 12 }: { width?: string; height?: nu
 }
 
 export default function CompanyDrawer({ ticker, holding, totalAum, onClose }: Props) {
-  const isOpen = ticker !== null
+  const isOpen = ticker !== null && ticker.trim() !== ''
 
-  const { data, isLoading } = useQuery({
+  const { data, isPending, isFetching, isError, error, refetch } = useQuery({
     queryKey: ['company', ticker],
     queryFn: () => fetchCompany(ticker!),
-    enabled: !!ticker,
+    enabled: isOpen,
     staleTime: 24 * 60 * 60_000,
+    retry: 1,
   })
+
+  const loading = isPending || isFetching
 
   // Close on Escape key
   useEffect(() => {
@@ -106,7 +109,7 @@ export default function CompanyDrawer({ ticker, holding, totalAum, onClose }: Pr
               )}
             </div>
             <div style={{ fontSize: 12, color: 'var(--text-2)', fontWeight: 500 }}>
-              {isLoading ? <Skeleton width="160px" /> : (data?.name ?? ticker)}
+              {loading ? <Skeleton width="160px" /> : (data?.name ?? ticker)}
             </div>
           </div>
           <button
@@ -148,6 +151,29 @@ export default function CompanyDrawer({ ticker, holding, totalAum, onClose }: Pr
         )}
 
         {/* Sector / Industry */}
+        {isError && (
+          <div style={{
+            padding: '12px 18px',
+            borderBottom: '1px solid var(--border)',
+            fontSize: 12,
+            color: 'var(--red)',
+            lineHeight: 1.5,
+          }}>
+            Unternehmensdaten konnten nicht geladen werden.
+            {error instanceof Error ? ` (${error.message})` : ''}
+            <button
+              onClick={() => refetch()}
+              style={{
+                display: 'block', marginTop: 8,
+                padding: '4px 10px', fontSize: 11, fontWeight: 600,
+                background: 'transparent', color: 'var(--blue)',
+                border: '1px solid var(--border)', borderRadius: 3, cursor: 'pointer',
+              }}
+            >
+              Erneut versuchen
+            </button>
+          </div>
+        )}
         <div style={{
           padding: '12px 18px',
           borderBottom: '1px solid var(--border)',
@@ -157,13 +183,13 @@ export default function CompanyDrawer({ ticker, holding, totalAum, onClose }: Pr
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 9, color: 'var(--text-3)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 3 }}>Sector</div>
             <div style={{ fontSize: 12, color: 'var(--text-1)' }}>
-              {isLoading ? <Skeleton width="80px" /> : (data?.sector ?? '—')}
+              {loading ? <Skeleton width="80px" /> : (data?.sector ?? '—')}
             </div>
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 9, color: 'var(--text-3)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 3 }}>Industry</div>
             <div style={{ fontSize: 12, color: 'var(--text-2)' }}>
-              {isLoading ? <Skeleton width="100px" /> : (data?.industry ?? '—')}
+              {loading ? <Skeleton width="100px" /> : (data?.industry ?? '—')}
             </div>
           </div>
         </div>
@@ -173,7 +199,7 @@ export default function CompanyDrawer({ ticker, holding, totalAum, onClose }: Pr
           <div style={{ fontSize: 9, color: 'var(--text-3)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>
             About
           </div>
-          {isLoading ? (
+          {loading ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <Skeleton width="100%" height={10} />
               <Skeleton width="90%" height={10} />
@@ -188,7 +214,7 @@ export default function CompanyDrawer({ ticker, holding, totalAum, onClose }: Pr
               {data?.summary || 'No description available.'}
             </p>
           )}
-          {!isLoading && data?.website && (
+          {!loading && data?.website && (
             <a
               href={data.website}
               target="_blank"
@@ -209,7 +235,7 @@ export default function CompanyDrawer({ ticker, holding, totalAum, onClose }: Pr
           <div style={{ fontSize: 9, color: 'var(--text-3)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 10 }}>
             Top News
           </div>
-          {isLoading ? (
+          {loading ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {[1, 2, 3].map(i => (
                 <div key={i} style={{ padding: '10px 12px', background: 'var(--surface-hi)', borderRadius: 4 }}>
