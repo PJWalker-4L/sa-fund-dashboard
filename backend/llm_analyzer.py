@@ -14,45 +14,42 @@ _GROQ_KEY = os.getenv("GROQ_API_KEY", "")
 _ANTHROPIC_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 
 _SYSTEM = (
-    "You are a terse hedge fund analyst. Maximum 200 words. "
-    "Be specific about tickers and position sizes — no generic commentary. "
-    "13F instrument types: SHARE = long equity, CALL = bullish option, PUT = bearish/short option. "
-    "CRITICAL: PUT positions are bearish bets, NOT long exposure. "
-    "A large PUT position in NVDA means the fund is SHORT NVDA, not long. "
-    "Never call PUT holders 'concentrated in' a sector as if long — they are expressing bearish views. "
-    "In the Risk Note: distinguish put exposure (bearish/short) from share/call exposure (bullish/long). "
-    "Example Risk Note for a put-heavy book: 'Tail risk: if NVDA/AMD rally sharply, large put notional (~$Xb) faces mark-to-market losses.' "
-    "Never say 'concentration in semiconductor stocks' when the positions are mostly puts. "
-    "STACKED CONVICTION: When the same ticker has BOTH share AND call activity (new or increased), "
-    "this is layered bullish expression — equity plus leveraged upside. "
-    "Always call this out explicitly with combined notional (e.g. 'SNDK: $724M shares + $389M calls = ~$1.1B stacked long'). "
-    "Never describe only the share leg when calls on the same ticker also moved. "
-    "CRITICAL: If a ticker ALSO has put exposure (see MIXED EXPRESSION block), do NOT call it stacked long — "
-    "puts dominate or offset the bullish legs. Example: MU with $584M puts + $422M calls is bearish/mixed, NOT bullish. "
-    "Your output is prefixed with authoritative PORTFOLIO EXPRESSION facts computed from 13F data. "
-    "Never contradict that prefix. Never write a 'Stacked Long Conviction' theme — it is already in the prefix."
+    "You are a senior hedge fund analyst writing for a professional buy-side audience. "
+    "Write in US English. Use complete sentences. Avoid nested or compound-complex sentences. "
+    "Maximum 220 words for your section only. "
+    "13F types: SHARE = long equity, CALL = bullish option, PUT = bearish/short option. "
+    "Sections ①–③ are already written in the output prefix. Do NOT repeat or contradict them. "
+    "Do NOT rewrite portfolio expression, stacked long, or mixed expression. "
+    "Write ONLY sections ④ and ⑤ as specified."
 )
 
 _USER_TEMPLATE = """\
 Fund: Situational Awareness Partners LP (Leopold Aschenbrenner — AI + energy infrastructure focus)
-Period: {prev_period} → {curr_period}
+Comparison: {prev_label} → {curr_label}
 
-Instrument mix this quarter:
-{instrument_mix}
-
-Stacked bullish conviction (SHARE + CALL on same ticker, NO puts on that ticker):
-{stacked_conviction}
-
-Mixed expression (same ticker has puts AND share/call activity — NOT stacked long):
-{mixed_expression}
+Context (already shown to reader in sections ①–③ — do not repeat):
+Instrument mix: {instrument_mix}
+Stacked long tickers: {stacked_conviction}
+Mixed-expression tickers: {mixed_tickers}
 
 Position changes ({n} positions, UNCHANGED excluded):
 {delta_csv}
 
-Analyze concisely (do NOT repeat stacked/mixed tickers — they appear in a deterministic prefix appended to your output):
-1. Key strategic themes (sector/layer focus — no stacked-long or mixed-expression lists)
-2. Most significant individual moves (exclude tickers already covered in the prefix)
-3. Risk Note: frame put exposure as bearish/short, NOT as sector concentration risk"""
+Write ONLY these two sections. US English. Complete sentences. No nested clauses.
+
+④ KEY MOVES vs. {prev_label}
+Provide 3–5 bullet points. Each bullet: ticker, instrument type, notional, and one sentence on why it matters.
+Focus on the largest QoQ changes not already explained in sections ①–③.
+Prioritize: new put books (SMH, NVDA, ORCL), energy/AI infrastructure share increases (CLSK, RIOT, CORZ, APLD), and full exits (LITE, INTC Call).
+Do NOT include tickers from section ② (stacked long: {stacked_conviction}).
+Do NOT describe mixed-expression tickers ({mixed_tickers}) as bullish, growing interest, or long conviction — those names have large put books.
+Do NOT misread small share stubs on put-heavy names as new long bets.
+
+⑤ RISK NOTE
+Write 2–3 sentences as a short paragraph.
+Primary risk: a semiconductor rally threatening the ~{put_notional} put book.
+Name specific tickers (NVDA, SMH, AMD, MU, TSM) and notional where relevant.
+Do NOT frame long energy or infrastructure positions as the main tail risk."""
 
 _STRATEGY_SYSTEM = """\
 You are a senior analyst at Situational Awareness Partners LP, an AI-infrastructure hedge fund founded by Leopold Aschenbrenner (ex-OpenAI researcher, author of the "Situational Awareness" paper).
@@ -137,10 +134,24 @@ def _holding_line(h: dict, total_aum: float) -> str:
     return f"{ticker} ({role}) {instr} — ${val / 1_000_000:.2f}B · {pct:.1f}%"
 
 
-def _instrument_mix(holdings: list[dict], total_aum: float) -> str:
+def _fmt_notional(value_k: float) -> str:
+    """Format 13F value (thousands USD) as $XM or $X.XB."""
+    if value_k >= 1_000_000:
+        return f"${value_k / 1_000_000:.1f}B"
+    return f"${value_k / 1_000:.0f}M"
+
+
+def _current_holdings_from_delta(delta: dict) -> list[dict]:
+    rows: list[dict] = []
+    for status in ("new", "increased", "decreased", "unchanged"):
+        rows.extend(delta.get(status, []))
+    return rows
+
+
+def _instrument_mix_parts(holdings: list[dict]) -> dict:
     shares = calls = puts = 0.0
     for h in holdings:
-        v = h.get("value", 0)
+        v = h.get("value", 0) or 0
         pc = h.get("putCall")
         if pc == "Put":
             puts += v
@@ -148,12 +159,28 @@ def _instrument_mix(holdings: list[dict], total_aum: float) -> str:
             calls += v
         else:
             shares += v
+    total = shares + calls + puts
+
     def _pct(v: float) -> float:
-        return v / total_aum * 100 if total_aum else 0.0
+        return v / total * 100 if total else 0.0
+
+    return {
+        "shares": shares,
+        "calls": calls,
+        "puts": puts,
+        "total": total,
+        "shares_pct": _pct(shares),
+        "calls_pct": _pct(calls),
+        "puts_pct": _pct(puts),
+    }
+
+
+def _instrument_mix(holdings: list[dict], total_aum: float) -> str:
+    parts = _instrument_mix_parts(holdings)
     return (
-        f"Shares: ${shares / 1_000_000:.2f}B ({_pct(shares):.1f}%) · "
-        f"Calls: ${calls / 1_000_000:.2f}B ({_pct(calls):.1f}%) · "
-        f"Puts: ${puts / 1_000_000:.2f}B ({_pct(puts):.1f}%)"
+        f"Shares: {_fmt_notional(parts['shares'])} ({parts['shares_pct']:.1f}%) · "
+        f"Calls: {_fmt_notional(parts['calls'])} ({parts['calls_pct']:.1f}%) · "
+        f"Puts: {_fmt_notional(parts['puts'])} ({parts['puts_pct']:.1f}%)"
     )
 
 
@@ -167,11 +194,11 @@ def _put_tickers(delta: dict) -> set[str]:
     return tickers
 
 
-def _stacked_conviction(delta: dict) -> str:
-    """Tickers with simultaneous share + call bullish moves, excluding any with puts."""
+def _stacked_rows(delta: dict) -> list[dict]:
+    """Tickers with share + call activity and no puts on the same ticker."""
     put_names = _put_tickers(delta)
     by_ticker: dict[str, dict[str, list]] = defaultdict(lambda: {"SHARE": [], "Call": []})
-    for status in ("new", "increased"):
+    for status in ("new", "increased", "unchanged"):
         for pos in delta.get(status, []):
             ticker = pos.get("ticker")
             if not ticker or ticker in put_names:
@@ -181,26 +208,27 @@ def _stacked_conviction(delta: dict) -> str:
             kind = "Call" if pos.get("putCall") == "Call" else "SHARE"
             by_ticker[ticker][kind].append(pos)
 
-    lines: list[str] = []
+    rows: list[dict] = []
     for ticker in sorted(by_ticker):
         kinds = by_ticker[ticker]
         if not (kinds["SHARE"] and kinds["Call"]):
             continue
         share_val = sum(p.get("value", 0) or 0 for p in kinds["SHARE"])
         call_val = sum(p.get("value", 0) or 0 for p in kinds["Call"])
-        total = share_val + call_val
-        lines.append(
-            f"{ticker}: SHARE ${share_val / 1_000:.0f}M + CALL ${call_val / 1_000:.0f}M "
-            f"(combined ~${total / 1_000:.0f}M stacked long)"
-        )
-    return "\n".join(lines) if lines else "None this quarter"
+        rows.append({
+            "ticker": ticker,
+            "share": share_val,
+            "call": call_val,
+            "total": share_val + call_val,
+        })
+    return rows
 
 
-def _mixed_expression(delta: dict) -> str:
-    """Tickers with puts AND share/call legs — offsetting or complex, not pure long."""
+def _mixed_rows(delta: dict) -> list[dict]:
+    """Tickers with puts plus share and/or call legs."""
     put_names = _put_tickers(delta)
     if not put_names:
-        return "None this quarter"
+        return []
 
     by_ticker: dict[str, dict[str, float]] = defaultdict(lambda: {"SHARE": 0.0, "Call": 0.0, "Put": 0.0})
     for status in ("new", "increased", "unchanged"):
@@ -217,28 +245,148 @@ def _mixed_expression(delta: dict) -> str:
             else:
                 by_ticker[ticker]["SHARE"] += val
 
-    lines: list[str] = []
+    rows: list[dict] = []
     for ticker in sorted(by_ticker):
         legs = by_ticker[ticker]
         if legs["Put"] <= 0:
             continue
-        parts = [f"PUT ${legs['Put'] / 1_000:.0f}M"]
-        if legs["SHARE"] > 0:
-            parts.append(f"SHARE ${legs['SHARE'] / 1_000:.0f}M")
-        if legs["Call"] > 0:
-            parts.append(f"CALL ${legs['Call'] / 1_000:.0f}M")
-        lines.append(f"{ticker}: {' + '.join(parts)} (mixed — puts offset bullish legs)")
-    return "\n".join(lines) if lines else "None this quarter"
+        rows.append({
+            "ticker": ticker,
+            "put": legs["Put"],
+            "share": legs["SHARE"],
+            "call": legs["Call"],
+        })
+    return rows
 
 
-def _deterministic_facts_block(stacked: str, mixed: str) -> str:
-    """Authoritative instrument expression — prepended to LLM output, not LLM-generated."""
-    return (
-        "▸ PORTFOLIO EXPRESSION (13F facts — authoritative)\n\n"
-        f"Stacked long (SHARE + CALL, no puts on ticker):\n{stacked}\n\n"
-        f"Mixed expression (puts on same ticker — NOT stacked long):\n{mixed}\n\n"
-        "---\n\n"
+def _stacked_conviction(delta: dict) -> str:
+    rows = _stacked_rows(delta)
+    if not rows:
+        return "None"
+    return ", ".join(r["ticker"] for r in rows)
+
+
+def _mixed_expression(delta: dict) -> str:
+    rows = _mixed_rows(delta)
+    if not rows:
+        return "None"
+    return ", ".join(r["ticker"] for r in rows)
+
+
+def _format_filing_quarter(period: str) -> str:
+    """Convert period_of_report (YYYY-MM-DD) to 'Q1 2026' label."""
+    try:
+        parts = period.strip()[:10].split("-")
+        if len(parts) != 3:
+            return period or "unknown quarter"
+        year, month = int(parts[0]), int(parts[1])
+        quarter = (month - 1) // 3 + 1
+        return f"Q{quarter} {year}"
+    except (ValueError, IndexError):
+        return period or "unknown quarter"
+
+
+def _section_portfolio_expression(mix: dict) -> str:
+    lines = [
+        "① PORTFOLIO EXPRESSION",
+        (
+            f"Shares: {_fmt_notional(mix['shares'])} ({mix['shares_pct']:.1f}%) · "
+            f"Calls: {_fmt_notional(mix['calls'])} ({mix['calls_pct']:.1f}%) · "
+            f"Puts: {_fmt_notional(mix['puts'])} ({mix['puts_pct']:.1f}%)"
+        ),
+    ]
+    if mix["puts_pct"] > 50:
+        lines.append(
+            "By 13F notional, put options account for more than half of reported exposure. "
+            "This reflects a predominantly bearish options book at face value."
+        )
+    elif mix["puts_pct"] > mix["shares_pct"]:
+        lines.append(
+            "Put notional exceeds share notional in this filing. "
+            "The book leans bearish on a reported basis."
+        )
+    else:
+        lines.append(
+            "Share and call notional together exceed put notional in this filing. "
+            "The book reads as net long on a reported basis."
+        )
+    lines.append(
+        "13F notional reflects the value of the underlying equity, not the option premium paid. "
+        "Capital at risk is lower than these headline figures suggest."
     )
+    return "\n".join(lines)
+
+
+def _section_stacked_long(rows: list[dict]) -> str:
+    lines = ["", "② STACKED LONG CONVICTION"]
+    if not rows:
+        lines.append(
+            "No ticker shows simultaneous share and call activity without offsetting puts this quarter."
+        )
+        return "\n".join(lines)
+
+    for r in rows:
+        lines.append(
+            f"{r['ticker']} holds {_fmt_notional(r['share'])} in shares and {_fmt_notional(r['call'])} in call options "
+            f"with no offsetting puts. Combined bullish notional is {_fmt_notional(r['total'])}."
+        )
+    if len(rows) == 1:
+        lines.append(
+            "This pattern reflects targeted conviction rather than a broad sector bet. "
+            "Storage sits within SA's AI infrastructure bottleneck thesis."
+        )
+    else:
+        lines.append(
+            "These names show share-plus-call conviction without offsetting puts on the same ticker."
+        )
+    return "\n".join(lines)
+
+
+def _section_mixed_expression(rows: list[dict]) -> str:
+    lines = ["", "③ MIXED EXPRESSION"]
+    if not rows:
+        lines.append("No ticker carries both put exposure and long legs this quarter.")
+        return "\n".join(lines)
+
+    n = len(rows)
+    tickers = ", ".join(r["ticker"] for r in rows)
+    lines.append(
+        f"{n} tickers carry both put positions and long legs in shares or calls: {tickers}."
+    )
+
+    examples = sorted(rows, key=lambda r: r["put"], reverse=True)[:2]
+    for r in examples:
+        long_parts: list[str] = []
+        if r["call"] > 0:
+            long_parts.append(f"{_fmt_notional(r['call'])} in calls")
+        if r["share"] > 0:
+            long_parts.append(f"a {_fmt_notional(r['share'])} share stub")
+        long_desc = " and ".join(long_parts) if long_parts else "no long legs"
+        lines.append(f"{r['ticker']} runs {_fmt_notional(r['put'])} in puts against {long_desc}.")
+
+    lines.append(
+        "These are not straightforward long convictions. "
+        "They are more likely paired expressions, spreads, or selective hedges."
+    )
+    return "\n".join(lines)
+
+
+def _build_deterministic_insight(
+    mix: dict,
+    stacked: list[dict],
+    mixed: list[dict],
+    curr_label: str,
+    prev_label: str,
+) -> str:
+    header = f"◈ AI INSIGHT — {curr_label} (vs. {prev_label})\n{'─' * 41}"
+    body = "\n".join([
+        header,
+        _section_portfolio_expression(mix),
+        _section_stacked_long(stacked),
+        _section_mixed_expression(mixed),
+        "",
+    ])
+    return body
 
 
 def _delta_to_csv(delta: dict) -> str:
@@ -278,26 +426,31 @@ async def analyze_delta(
         save_analysis(filing_pair, text)
         return text, False
 
-    all_positions = []
-    for key in ("new", "closed", "increased", "decreased", "unchanged"):
-        all_positions.extend(delta.get(key, []))
-    total_aum = sum(p.get("value", 0) or 0 for p in all_positions)
-    mix = _instrument_mix(all_positions, total_aum) if all_positions else "n/a"
+    curr_holdings = _current_holdings_from_delta(delta)
+    mix_parts = _instrument_mix_parts(curr_holdings)
+    mix = _instrument_mix(curr_holdings, mix_parts["total"])
+    stacked_rows = _stacked_rows(delta)
+    mixed_rows = _mixed_rows(delta)
     stacked = _stacked_conviction(delta)
     mixed = _mixed_expression(delta)
 
+    curr_label = _format_filing_quarter(curr_meta.get("period_of_report", ""))
+    prev_label = _format_filing_quarter(prev_meta.get("period_of_report", ""))
+
     prompt = _USER_TEMPLATE.format(
-        prev_period=prev_meta.get("period_of_report", "prev"),
-        curr_period=curr_meta.get("period_of_report", "curr"),
+        prev_label=prev_label,
+        curr_label=curr_label,
         n=total_changes,
         instrument_mix=mix,
         stacked_conviction=stacked,
-        mixed_expression=mixed,
+        mixed_tickers=mixed,
+        put_notional=_fmt_notional(mix_parts["puts"]),
         delta_csv=_delta_to_csv(delta),
     )
 
-    llm_text = await _call(prompt, _SYSTEM)
-    text = _deterministic_facts_block(stacked, mixed) + llm_text
+    llm_text = await _call(prompt, _SYSTEM, max_tokens=650)
+    prefix = _build_deterministic_insight(mix_parts, stacked_rows, mixed_rows, curr_label, prev_label)
+    text = prefix + llm_text
     save_analysis(filing_pair, text)
     return text, False
 

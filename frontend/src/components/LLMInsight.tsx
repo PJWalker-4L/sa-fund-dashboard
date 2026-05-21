@@ -73,9 +73,9 @@ export default function LLMInsight({ data, isLoading, onRefresh, tickerNames, on
       {!collapsed && (
         <div style={{
           fontFamily: 'var(--mono)',
-          fontSize: 12,
+          fontSize: 13,
           color: 'var(--text-1)',
-          lineHeight: 1.75,
+          lineHeight: 1.8,
           whiteSpace: 'pre-wrap',
           minHeight: 32,
         }}>

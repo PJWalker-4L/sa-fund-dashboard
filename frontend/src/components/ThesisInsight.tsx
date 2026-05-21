@@ -221,9 +221,9 @@ export default function ThesisInsight({ holdings, strategy, isLoading, onRefresh
             </div>
             <div style={{
               fontFamily: 'var(--mono)',
-              fontSize: 11,
+              fontSize: 13,
               color: 'var(--text-1)',
-              lineHeight: 1.75,
+              lineHeight: 1.8,
               whiteSpace: 'pre-wrap',
               minHeight: 28,
             }}>
