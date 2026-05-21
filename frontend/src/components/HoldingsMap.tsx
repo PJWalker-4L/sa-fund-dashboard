@@ -70,27 +70,30 @@ function HoldingMarker({
   onEnter?: () => void
 }) {
   return (
-    <motion.circle
-      cx={x}
-      cy={y}
-      r={4}
-      fill="#f59e0b"
-      style={{ cursor: onClick ? 'pointer' : 'default' }}
-      initial={{ scale: 0, opacity: 0 }}
-      animate={{
-        scale: [1, 1.35, 1],
-        opacity: [0.9, 1, 0.9],
-      }}
-      transition={{
-        duration: 2,
-        repeat: Number.POSITIVE_INFINITY,
-        ease: 'easeInOut',
-        delay,
-      }}
-      onClick={onClick}
-      onMouseEnter={onEnter}
-      onMouseLeave={onLeave}
-    />
+    <g style={{ cursor: onClick ? 'pointer' : 'default' }} onClick={onClick} onMouseEnter={onEnter} onMouseLeave={onLeave}>
+      {/* Outer glow ring */}
+      <motion.circle
+        cx={x}
+        cy={y}
+        r={7}
+        fill="none"
+        stroke="rgba(255,255,255,0.25)"
+        strokeWidth={1}
+        initial={{ scale: 0.5, opacity: 0 }}
+        animate={{ scale: [0.8, 1.6, 0.8], opacity: [0.4, 0, 0.4] }}
+        transition={{ duration: 2.2, repeat: Number.POSITIVE_INFINITY, ease: 'easeInOut', delay }}
+      />
+      {/* Core dot */}
+      <motion.circle
+        cx={x}
+        cy={y}
+        r={3}
+        fill="rgba(255,255,255,0.9)"
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: [1, 1.25, 1], opacity: [0.75, 1, 0.75] }}
+        transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, ease: 'easeInOut', delay }}
+      />
+    </g>
   )
 }
 
@@ -233,16 +236,40 @@ export default function HoldingsMap({
                 />
               )}
 
-              {country.dots.map((dot, index) => (
-                <circle
-                  key={index}
-                  cx={dot.x}
-                  cy={dot.y}
-                  r={1.0}
-                  fill={dotColor}
-                  opacity={dotOpacity}
-                />
-              ))}
+              {country.dots.map((dot, index) => {
+                if (index % 5 === 0) {
+                  return (
+                    <motion.circle
+                      key={index}
+                      cx={dot.x}
+                      cy={dot.y}
+                      r={1.0}
+                      fill={dotColor}
+                      initial={{ opacity: dotOpacity }}
+                      animate={{
+                        opacity: [dotOpacity, Math.min(1, dotOpacity + 0.35), dotOpacity],
+                        scale: [1, 1.3, 1],
+                      }}
+                      transition={{
+                        duration: 2.5,
+                        repeat: Number.POSITIVE_INFINITY,
+                        ease: 'easeInOut',
+                        delay: (index % 20) * 0.12,
+                      }}
+                    />
+                  )
+                }
+                return (
+                  <circle
+                    key={index}
+                    cx={dot.x}
+                    cy={dot.y}
+                    r={1.0}
+                    fill={dotColor}
+                    opacity={dotOpacity}
+                  />
+                )
+              })}
             </g>
           )
         })}
@@ -271,7 +298,7 @@ export default function HoldingsMap({
           minWidth: 180,
           pointerEvents: 'none',
         }}>
-          <div style={{ fontFamily: 'var(--mono)', fontWeight: 700, fontSize: 13, color: '#f59e0b' }}>
+          <div style={{ fontFamily: 'var(--mono)', fontWeight: 700, fontSize: 13, color: 'var(--text-1)' }}>
             {hovered.ticker}
           </div>
           <div style={{ fontSize: 11, color: 'var(--text-2)', marginTop: 2 }}>
