@@ -26,7 +26,11 @@ _SYSTEM = (
     "STACKED CONVICTION: When the same ticker has BOTH share AND call activity (new or increased), "
     "this is layered bullish expression — equity plus leveraged upside. "
     "Always call this out explicitly with combined notional (e.g. 'SNDK: $724M shares + $389M calls = ~$1.1B stacked long'). "
-    "Never describe only the share leg when calls on the same ticker also moved."
+    "Never describe only the share leg when calls on the same ticker also moved. "
+    "CRITICAL: If a ticker ALSO has put exposure (see MIXED EXPRESSION block), do NOT call it stacked long — "
+    "puts dominate or offset the bullish legs. Example: MU with $584M puts + $422M calls is bearish/mixed, NOT bullish. "
+    "Your output is prefixed with authoritative PORTFOLIO EXPRESSION facts computed from 13F data. "
+    "Never contradict that prefix. Never write a 'Stacked Long Conviction' theme — it is already in the prefix."
 )
 
 _USER_TEMPLATE = """\
@@ -36,15 +40,18 @@ Period: {prev_period} → {curr_period}
 Instrument mix this quarter:
 {instrument_mix}
 
-Stacked bullish conviction (SHARE + CALL on same ticker this quarter):
+Stacked bullish conviction (SHARE + CALL on same ticker, NO puts on that ticker):
 {stacked_conviction}
+
+Mixed expression (same ticker has puts AND share/call activity — NOT stacked long):
+{mixed_expression}
 
 Position changes ({n} positions, UNCHANGED excluded):
 {delta_csv}
 
-Analyze concisely:
-1. Key strategic themes (distinguish puts=bearish from shares/calls=bullish; highlight stacked share+call tickers)
-2. Most significant individual moves (for stacked tickers: report BOTH share and call legs with combined notional)
+Analyze concisely (do NOT repeat stacked/mixed tickers — they appear in a deterministic prefix appended to your output):
+1. Key strategic themes (sector/layer focus — no stacked-long or mixed-expression lists)
+2. Most significant individual moves (exclude tickers already covered in the prefix)
 3. Risk Note: frame put exposure as bearish/short, NOT as sector concentration risk"""
 
 _STRATEGY_SYSTEM = """\
@@ -134,13 +141,24 @@ def _instrument_mix(holdings: list[dict], total_aum: float) -> str:
     )
 
 
+def _put_tickers(delta: dict) -> set[str]:
+    """Tickers with current put exposure (new, increased, or unchanged)."""
+    tickers: set[str] = set()
+    for status in ("new", "increased", "unchanged"):
+        for pos in delta.get(status, []):
+            if pos.get("putCall") == "Put" and pos.get("ticker"):
+                tickers.add(pos["ticker"])
+    return tickers
+
+
 def _stacked_conviction(delta: dict) -> str:
-    """Tickers with simultaneous share + call bullish moves (new or increased)."""
+    """Tickers with simultaneous share + call bullish moves, excluding any with puts."""
+    put_names = _put_tickers(delta)
     by_ticker: dict[str, dict[str, list]] = defaultdict(lambda: {"SHARE": [], "Call": []})
     for status in ("new", "increased"):
         for pos in delta.get(status, []):
             ticker = pos.get("ticker")
-            if not ticker:
+            if not ticker or ticker in put_names:
                 continue
             if pos.get("putCall") == "Put":
                 continue
@@ -160,6 +178,51 @@ def _stacked_conviction(delta: dict) -> str:
             f"(combined ~${total / 1_000:.0f}M stacked long)"
         )
     return "\n".join(lines) if lines else "None this quarter"
+
+
+def _mixed_expression(delta: dict) -> str:
+    """Tickers with puts AND share/call legs — offsetting or complex, not pure long."""
+    put_names = _put_tickers(delta)
+    if not put_names:
+        return "None this quarter"
+
+    by_ticker: dict[str, dict[str, float]] = defaultdict(lambda: {"SHARE": 0.0, "Call": 0.0, "Put": 0.0})
+    for status in ("new", "increased", "unchanged"):
+        for pos in delta.get(status, []):
+            ticker = pos.get("ticker")
+            if not ticker or ticker not in put_names:
+                continue
+            val = pos.get("value", 0) or 0
+            pc = pos.get("putCall")
+            if pc == "Put":
+                by_ticker[ticker]["Put"] += val
+            elif pc == "Call":
+                by_ticker[ticker]["Call"] += val
+            else:
+                by_ticker[ticker]["SHARE"] += val
+
+    lines: list[str] = []
+    for ticker in sorted(by_ticker):
+        legs = by_ticker[ticker]
+        if legs["Put"] <= 0:
+            continue
+        parts = [f"PUT ${legs['Put'] / 1_000:.0f}M"]
+        if legs["SHARE"] > 0:
+            parts.append(f"SHARE ${legs['SHARE'] / 1_000:.0f}M")
+        if legs["Call"] > 0:
+            parts.append(f"CALL ${legs['Call'] / 1_000:.0f}M")
+        lines.append(f"{ticker}: {' + '.join(parts)} (mixed — puts offset bullish legs)")
+    return "\n".join(lines) if lines else "None this quarter"
+
+
+def _deterministic_facts_block(stacked: str, mixed: str) -> str:
+    """Authoritative instrument expression — prepended to LLM output, not LLM-generated."""
+    return (
+        "▸ PORTFOLIO EXPRESSION (13F facts — authoritative)\n\n"
+        f"Stacked long (SHARE + CALL, no puts on ticker):\n{stacked}\n\n"
+        f"Mixed expression (puts on same ticker — NOT stacked long):\n{mixed}\n\n"
+        "---\n\n"
+    )
 
 
 def _delta_to_csv(delta: dict) -> str:
@@ -205,6 +268,7 @@ async def analyze_delta(
     total_aum = sum(p.get("value", 0) or 0 for p in all_positions)
     mix = _instrument_mix(all_positions, total_aum) if all_positions else "n/a"
     stacked = _stacked_conviction(delta)
+    mixed = _mixed_expression(delta)
 
     prompt = _USER_TEMPLATE.format(
         prev_period=prev_meta.get("period_of_report", "prev"),
@@ -212,10 +276,12 @@ async def analyze_delta(
         n=total_changes,
         instrument_mix=mix,
         stacked_conviction=stacked,
+        mixed_expression=mixed,
         delta_csv=_delta_to_csv(delta),
     )
 
-    text = await _call(prompt, _SYSTEM)
+    llm_text = await _call(prompt, _SYSTEM)
+    text = _deterministic_facts_block(stacked, mixed) + llm_text
     save_analysis(filing_pair, text)
     return text, False
 
