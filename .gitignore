@@ -12,6 +12,9 @@ CLAUDE.md
 GLOBAL_RULES.md
 DECISIONS.md
 
+# Lokale Dokumente (niemals auf GitHub)
+documents/
+
 # Data (runtime-generated)
 data/snapshot.json
 data/holdings_cache.json
