@@ -497,3 +497,15 @@ button { font-family: var(--font); }
   0%, 100% { box-shadow: 0 0 4px var(--teal-glow); }
   50% { box-shadow: 0 0 14px var(--teal-glow), 0 0 28px rgba(0,200,224,0.12); }
 }
+
+/* ─── Map dot twinkle — CSS-only, GPU-composited ─────────────────────────── */
+@keyframes map-twinkle {
+  0%, 100% { opacity: 0.24; }
+  50%       { opacity: 0.52; }
+}
+@keyframes map-twinkle-active {
+  0%, 100% { opacity: 0.7; }
+  50%       { opacity: 1.0; }
+}
+.map-dot-twinkle        { animation: map-twinkle        3s ease-in-out infinite; will-change: opacity; }
+.map-dot-twinkle-active { animation: map-twinkle-active 2s ease-in-out infinite; will-change: opacity; }

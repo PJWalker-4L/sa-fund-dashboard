@@ -242,7 +242,6 @@ export default function HoldingsMap({
           const borderOpacity = isHovered && hasHoldings ? 1.0 : hasHoldings ? 0.85 : isHovered ? 0.5 : 0.35
           const borderStroke = isHovered && hasHoldings ? '#00c8e0' : hasHoldings ? 'rgba(0,200,224,0.6)' : '#1e3058'
           const borderWidth = isHovered && hasHoldings ? 1.2 : hasHoldings ? 0.8 : 0.5
-          const dotOpacity = isHovered && hasHoldings ? 0.95 : isHovered ? 0.7 : hasHoldings ? 0.75 : 0.28
           const dotColor = hasHoldings ? '#00c8e0' : 'rgba(140,185,230,0.8)'
 
           return (
@@ -263,28 +262,7 @@ export default function HoldingsMap({
               )}
 
               {country.dots.map((dot, index) => {
-                if (index % 5 === 0) {
-                  return (
-                    <motion.circle
-                      key={index}
-                      cx={dot.x}
-                      cy={dot.y}
-                      r={1.0}
-                      fill={dotColor}
-                      initial={{ opacity: dotOpacity }}
-                      animate={{
-                        opacity: [dotOpacity, Math.min(1, dotOpacity + 0.35), dotOpacity],
-                        scale: [1, 1.3, 1],
-                      }}
-                      transition={{
-                        duration: 2.5,
-                        repeat: Number.POSITIVE_INFINITY,
-                        ease: 'easeInOut',
-                        delay: (index % 20) * 0.12,
-                      }}
-                    />
-                  )
-                }
+                const twinkle = index % 10 === 0
                 return (
                   <circle
                     key={index}
@@ -292,7 +270,10 @@ export default function HoldingsMap({
                     cy={dot.y}
                     r={1.0}
                     fill={dotColor}
-                    opacity={dotOpacity}
+                    opacity={hasHoldings ? 0.7 : 0.24}
+                    className={twinkle ? (hasHoldings ? 'map-dot-twinkle-active' : 'map-dot-twinkle') : undefined}
+                    style={twinkle ? { animationDelay: `${(index % 30) * 0.1}s` } : undefined}
+                    pointerEvents="none"
                   />
                 )
               })}
