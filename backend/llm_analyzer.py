@@ -22,7 +22,11 @@ _SYSTEM = (
     "Never call PUT holders 'concentrated in' a sector as if long — they are expressing bearish views. "
     "In the Risk Note: distinguish put exposure (bearish/short) from share/call exposure (bullish/long). "
     "Example Risk Note for a put-heavy book: 'Tail risk: if NVDA/AMD rally sharply, large put notional (~$Xb) faces mark-to-market losses.' "
-    "Never say 'concentration in semiconductor stocks' when the positions are mostly puts."
+    "Never say 'concentration in semiconductor stocks' when the positions are mostly puts. "
+    "STACKED CONVICTION: When the same ticker has BOTH share AND call activity (new or increased), "
+    "this is layered bullish expression — equity plus leveraged upside. "
+    "Always call this out explicitly with combined notional (e.g. 'SNDK: $724M shares + $389M calls = ~$1.1B stacked long'). "
+    "Never describe only the share leg when calls on the same ticker also moved."
 )
 
 _USER_TEMPLATE = """\
@@ -32,12 +36,15 @@ Period: {prev_period} → {curr_period}
 Instrument mix this quarter:
 {instrument_mix}
 
+Stacked bullish conviction (SHARE + CALL on same ticker this quarter):
+{stacked_conviction}
+
 Position changes ({n} positions, UNCHANGED excluded):
 {delta_csv}
 
 Analyze concisely:
-1. Key strategic themes (distinguish puts=bearish from shares/calls=bullish)
-2. Most significant individual moves
+1. Key strategic themes (distinguish puts=bearish from shares/calls=bullish; highlight stacked share+call tickers)
+2. Most significant individual moves (for stacked tickers: report BOTH share and call legs with combined notional)
 3. Risk Note: frame put exposure as bearish/short, NOT as sector concentration risk"""
 
 _STRATEGY_SYSTEM = """\
@@ -127,6 +134,34 @@ def _instrument_mix(holdings: list[dict], total_aum: float) -> str:
     )
 
 
+def _stacked_conviction(delta: dict) -> str:
+    """Tickers with simultaneous share + call bullish moves (new or increased)."""
+    by_ticker: dict[str, dict[str, list]] = defaultdict(lambda: {"SHARE": [], "Call": []})
+    for status in ("new", "increased"):
+        for pos in delta.get(status, []):
+            ticker = pos.get("ticker")
+            if not ticker:
+                continue
+            if pos.get("putCall") == "Put":
+                continue
+            kind = "Call" if pos.get("putCall") == "Call" else "SHARE"
+            by_ticker[ticker][kind].append(pos)
+
+    lines: list[str] = []
+    for ticker in sorted(by_ticker):
+        kinds = by_ticker[ticker]
+        if not (kinds["SHARE"] and kinds["Call"]):
+            continue
+        share_val = sum(p.get("value", 0) or 0 for p in kinds["SHARE"])
+        call_val = sum(p.get("value", 0) or 0 for p in kinds["Call"])
+        total = share_val + call_val
+        lines.append(
+            f"{ticker}: SHARE ${share_val / 1_000:.0f}M + CALL ${call_val / 1_000:.0f}M "
+            f"(combined ~${total / 1_000:.0f}M stacked long)"
+        )
+    return "\n".join(lines) if lines else "None this quarter"
+
+
 def _delta_to_csv(delta: dict) -> str:
     rows = ["Ticker,Issuer,Type,Status,Δ%,Value($k)"]
     for status in ("new", "closed", "increased", "decreased"):
@@ -169,12 +204,14 @@ async def analyze_delta(
         all_positions.extend(delta.get(key, []))
     total_aum = sum(p.get("value", 0) or 0 for p in all_positions)
     mix = _instrument_mix(all_positions, total_aum) if all_positions else "n/a"
+    stacked = _stacked_conviction(delta)
 
     prompt = _USER_TEMPLATE.format(
         prev_period=prev_meta.get("period_of_report", "prev"),
         curr_period=curr_meta.get("period_of_report", "curr"),
         n=total_changes,
         instrument_mix=mix,
+        stacked_conviction=stacked,
         delta_csv=_delta_to_csv(delta),
     )
 

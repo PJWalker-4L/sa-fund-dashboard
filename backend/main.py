@@ -254,7 +254,11 @@ async def get_movers():
 
     all_movers.sort(key=lambda m: m.pct_change, reverse=True)
     gainers = [m for m in all_movers if m.pct_change > 0][:5]
-    losers = list(reversed([m for m in all_movers if m.pct_change < 0]))[:5]
+
+    # Losers: worst pct first, tiebreaker = largest absolute dollar loss first.
+    losers_raw = [m for m in all_movers if m.pct_change < 0]
+    losers_raw.sort(key=lambda m: (m.pct_change, m.value_change_thousands))
+    losers = losers_raw[:5]
 
     period = (
         f"{prev_meta['period_of_report']} → {curr_meta['period_of_report']}"
