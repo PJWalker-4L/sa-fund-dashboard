@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { fetchHoldings, fetchAnalysis, fetchMovers, triggerRefresh, fetchAlpha, checkNewFiling, fetchStrategy, invalidateStrategyCache, invalidateAnalysisCache } from './api'
+import { fetchHoldings, fetchAnalysis, fetchMovers, triggerRefresh, fetchAlpha, checkNewFiling, fetchStrategy, invalidateStrategyCache, invalidateAnalysisCache, fetchHistory } from './api'
 import StatusBar from './components/StatusBar'
 import KPICard from './components/KPICard'
 import BucketChart from './components/BucketChart'
@@ -11,6 +11,7 @@ import DeltaBadge from './components/DeltaBadge'
 import HoldingsTable from './components/HoldingsTable'
 import CompanyDrawer from './components/CompanyDrawer'
 import ChatPanel from './components/ChatPanel'
+import TimelineChart from './components/TimelineChart'
 import { buildTickerNameMap } from './components/LinkedTickerText'
 import type { HoldingRow } from './types'
 
@@ -65,6 +66,11 @@ export default function App() {
     queryFn: fetchStrategy,
     staleTime: Infinity,
     enabled: !!data,
+  })
+  const history = useQuery({
+    queryKey: ['history'],
+    queryFn: fetchHistory,
+    staleTime: 4 * 3600_000,
   })
   const filingCheck = useQuery({
     queryKey: ['filing-check'],
@@ -255,6 +261,37 @@ export default function App() {
             sub={`${data!.holdings.length > 0 ? Math.round(data!.call_count / data!.holdings.length * 100) : 0}% of portfolio`}
           />
         </div>
+
+        {/* Quarterly Timeline */}
+        {history.data
+          ? <TimelineChart data={history.data} />
+          : history.isError
+          ? (
+            <div style={{
+              background: 'var(--surface)',
+              border: '1px solid var(--border)',
+              borderRadius: 6,
+              padding: 16,
+              textAlign: 'center',
+            }}>
+              <span style={{ color: 'var(--red)', fontSize: 12 }}>Timeline failed to load</span>
+            </div>
+          )
+          : (
+            <div style={{
+              background: 'var(--surface)',
+              border: '1px solid var(--border)',
+              borderRadius: 6,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: 120,
+            }}>
+              <span className="pulse" style={{ color: 'var(--text-3)', fontSize: 12 }}>
+                Loading timeline…
+              </span>
+            </div>
+          )}
 
         {/* Bucket Chart + Movers */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>

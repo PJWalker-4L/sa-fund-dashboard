@@ -10,6 +10,7 @@ _DATA = Path("/tmp/sa-cache") if os.getenv("VERCEL") else Path(__file__).parent.
 _HOLDINGS_CACHE = _DATA / "holdings_cache.json"
 _ANALYSIS_CACHE = _DATA / "analysis_cache.json"
 _STRATEGY_CACHE = _DATA / "strategy_cache.json"
+_HISTORY_CACHE = _DATA / "history_cache.json"
 
 CACHE_TTL = 4 * 3600  # 4 hours — 13F filings are quarterly, no need to re-fetch often
 
@@ -143,3 +144,26 @@ def save_strategy(filing_key: str, text: str) -> None:
         cache = json.loads(_STRATEGY_CACHE.read_text(encoding="utf-8"))
     cache[filing_key] = text
     _STRATEGY_CACHE.write_text(json.dumps(cache, indent=2), encoding="utf-8")
+
+
+def save_history_cache(data: dict) -> None:
+    _DATA.mkdir(exist_ok=True)
+    payload = {"ts": time.time(), "data": data}
+    _HISTORY_CACHE.write_text(
+        json.dumps(_sanitize_for_json(payload), indent=2),
+        encoding="utf-8",
+    )
+
+
+def load_history_cache(ttl: int = CACHE_TTL) -> Optional[dict]:
+    if not _HISTORY_CACHE.exists():
+        return None
+    payload = json.loads(_HISTORY_CACHE.read_text(encoding="utf-8"))
+    if time.time() - payload.get("ts", 0) > ttl:
+        return None
+    return payload.get("data")
+
+
+def invalidate_history_cache() -> None:
+    if _HISTORY_CACHE.exists():
+        _HISTORY_CACHE.unlink()

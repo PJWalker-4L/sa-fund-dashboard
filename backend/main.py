@@ -10,12 +10,13 @@ import state_manager
 import llm_analyzer
 import company_client
 import alpha_calculator
+import history_builder
 from sectors import classify, thesis_role as get_thesis_role
 from models import (
     HoldingsResponse, AnalysisResponse, FilingMeta, HoldingRow,
     DeltaSummary, BucketAllocation, MoversResponse, MoverItem,
     CompanyInfoResponse, NewsItem, AlphaResponse, StrategyResponse,
-    ChatRequest, ChatResponse,
+    ChatRequest, ChatResponse, HistoryResponse,
 )
 
 app = FastAPI(title="SA Fund Dashboard API", version="1.0.0")
@@ -209,6 +210,7 @@ async def check_new_filing():
 async def refresh():
     state_manager.invalidate_holdings_cache()
     state_manager.invalidate_llm_caches()
+    state_manager.invalidate_history_cache()
     try:
         _, curr_meta, _, _ = _fetch_live()
         return {"status": "refreshed", "period": curr_meta["period_of_report"]}
@@ -255,7 +257,6 @@ async def get_movers():
     all_movers.sort(key=lambda m: m.pct_change, reverse=True)
     gainers = [m for m in all_movers if m.pct_change > 0][:5]
 
-    # Losers: worst pct first, tiebreaker = largest absolute dollar loss first.
     losers_raw = [m for m in all_movers if m.pct_change < 0]
     losers_raw.sort(key=lambda m: (m.pct_change, m.value_change_thousands))
     losers = losers_raw[:5]
@@ -265,6 +266,19 @@ async def get_movers():
         if prev_meta else curr_meta["period_of_report"]
     )
     return MoversResponse(gainers=gainers, losers=losers, period=period)
+
+
+@app.get("/api/history", response_model=HistoryResponse)
+async def get_history():
+    cached = state_manager.load_history_cache()
+    if cached:
+        return HistoryResponse(**cached)
+    try:
+        result = history_builder.build_history()
+    except Exception as e:
+        raise _http_503("History build failed", e)
+    state_manager.save_history_cache(result.model_dump())
+    return result
 
 
 @app.get("/api/alpha", response_model=AlphaResponse)

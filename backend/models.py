@@ -122,3 +122,37 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     response: str
+
+
+class HistoryPoint(BaseModel):
+    quarter: str
+    period_of_report: str
+    accession_number: str
+    total_thousands: float
+    shares_thousands: float
+    calls_thousands: float
+    puts_thousands: float
+    shares_pct: float
+    calls_pct: float
+    puts_pct: float
+
+
+class HistoryAnnotation(BaseModel):
+    quarter: str
+    kind: str
+    label: str
+    detail: str
+    value_billions: Optional[float] = None
+
+
+class PerformanceBadge(BaseModel):
+    label: str
+    return_pct: float
+    benchmark: Optional[str] = None
+
+
+class HistoryResponse(BaseModel):
+    points: list[HistoryPoint]
+    annotations: list[HistoryAnnotation]
+    performance_badges: list[PerformanceBadge]
+    disclaimer: str

@@ -121,3 +121,37 @@ export interface ChatMessage {
 export interface ChatResponse {
   response: string
 }
+
+export interface HistoryPoint {
+  quarter: string
+  period_of_report: string
+  accession_number: string
+  total_thousands: number
+  shares_thousands: number
+  calls_thousands: number
+  puts_thousands: number
+  shares_pct: number
+  calls_pct: number
+  puts_pct: number
+}
+
+export interface HistoryAnnotation {
+  quarter: string
+  kind: string
+  label: string
+  detail: string
+  value_billions: number | null
+}
+
+export interface PerformanceBadge {
+  label: string
+  return_pct: number
+  benchmark: string | null
+}
+
+export interface HistoryResponse {
+  points: HistoryPoint[]
+  annotations: HistoryAnnotation[]
+  performance_badges: PerformanceBadge[]
+  disclaimer: string
+}

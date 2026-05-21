@@ -149,3 +149,56 @@ def fetch_previous() -> tuple[Optional[pd.DataFrame], Optional[dict]]:
         return None, None
     filing = filings[1]
     return _holdings_from_filing(filing), _meta(filing)
+
+
+def format_filing_quarter(period: str) -> str:
+    """Convert period_of_report (YYYY-MM-DD) to 'Q1 2026' label."""
+    try:
+        parts = period.strip()[:10].split("-")
+        if len(parts) != 3:
+            return period or "unknown quarter"
+        year, month = int(parts[0]), int(parts[1])
+        quarter = (month - 1) // 3 + 1
+        return f"Q{quarter} {year}"
+    except (ValueError, IndexError):
+        return period or "unknown quarter"
+
+
+def _filing_exposure_summary(filing) -> dict:
+    """Lightweight parse — no ticker enrichment. Returns exposure totals in thousands USD."""
+    obj = filing.obj()
+    df = _parse_infotable_xml(obj.infotable_xml)
+    df = _normalize(df)
+
+    shares = calls = puts = 0.0
+    for _, row in df.iterrows():
+        val = float(row.get("value") or 0)
+        pc = row.get("putCall")
+        if pc == "Call":
+            calls += val
+        elif pc == "Put":
+            puts += val
+        else:
+            shares += val
+
+    total = shares + calls + puts
+    meta = _meta(filing)
+    return {
+        **meta,
+        "quarter": format_filing_quarter(meta["period_of_report"]),
+        "total_thousands": total,
+        "shares_thousands": shares,
+        "calls_thousands": calls,
+        "puts_thousands": puts,
+        "shares_pct": round(shares / total * 100, 1) if total else 0.0,
+        "calls_pct": round(calls / total * 100, 1) if total else 0.0,
+        "puts_pct": round(puts / total * 100, 1) if total else 0.0,
+    }
+
+
+def fetch_all_filing_summaries() -> list[dict]:
+    """Return exposure summary for every 13F-HR filing, oldest first."""
+    filings = _filings()
+    summaries = [_filing_exposure_summary(f) for f in filings]
+    summaries.sort(key=lambda s: s["period_of_report"])
+    return summaries
