@@ -31,7 +31,7 @@ interface Props {
 
 const WIDTH = 960
 const HEIGHT = 520
-const DOT_STEP = 5
+const DOT_STEP = 7
 
 function generateCountryDots(
   country: CountryFeature,
@@ -106,6 +106,7 @@ export default function HoldingsMap({
 }: Props) {
   const [worldData, setWorldData] = useState<Topology | null>(null)
   const [mapLoading, setMapLoading] = useState(true)
+  const [countryDots, setCountryDots] = useState<CountryDots[]>([])
   const [hovered, setHovered] = useState<HoldingsMapPoint | null>(null)
   const [hoveredCountryId, setHoveredCountryId] = useState<string | null>(null)
 
@@ -135,12 +136,23 @@ export default function HoldingsMap({
     return collection.features as CountryFeature[]
   }, [worldData])
 
-  const countryDots = useMemo(() => {
-    if (!countries.length) return [] as CountryDots[]
-    return countries.map(c => ({
-      countryId: String(c.id ?? ''),
-      dots: generateCountryDots(c, projection, geoPath),
-    }))
+  // Compute dots in async chunks so the map renders borders immediately
+  useEffect(() => {
+    if (!countries.length) return
+    setCountryDots([])
+    const CHUNK = 25
+    let i = 0
+    const results: CountryDots[] = []
+    function processChunk() {
+      const end = Math.min(i + CHUNK, countries.length)
+      for (; i < end; i++) {
+        const c = countries[i]
+        results.push({ countryId: String(c.id ?? ''), dots: generateCountryDots(c, projection, geoPath) })
+      }
+      setCountryDots([...results])
+      if (i < countries.length) setTimeout(processChunk, 0)
+    }
+    setTimeout(processChunk, 0)
   }, [countries, projection, geoPath])
 
   const activeCountryIds = useMemo(() => {
