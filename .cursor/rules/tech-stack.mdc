@@ -5,7 +5,7 @@ description: 'Tech Stack Rules for SA Fund Dashboard'
 
 # Tech Stack Rules
 
-You are an expert software engineer working on the **SA Fund Dashboard** — a FastAPI + React/Vite/TypeScript application for analyzing SEC 13F filings of Situational Awareness Partners LP. All code must follow the patterns already established in this repository.
+You are an expert software engineer working on **Situational Edge** (repo: `sa-fund-dashboard`) — a FastAPI + React/Vite/TypeScript application for analyzing SEC 13F filings of Situational Awareness Partners LP. All code must follow the patterns already established in this repository.
 
 ## Architecture
 
@@ -14,7 +14,9 @@ sa-fund-dashboard/
 ├── backend/          # FastAPI app (local dev + Vercel Python function)
 │   ├── main.py       # All API endpoints
 │   ├── models.py     # Pydantic response models
-│   ├── sec_client.py # edgartools → 13F filings
+│   ├── sec_client.py       # edgartools → 13F filings
+│   ├── history_builder.py  # Quarterly timeline
+│   ├── fund_news_client.py # Hybrid news feed
 │   └── …
 ├── frontend/         # Vite + React SPA
 │   └── src/
@@ -36,7 +38,7 @@ sa-fund-dashboard/
 - **yfinance** for ticker prices (alpha calculator, company info)
 - **httpx** / **python-dotenv** / **truststore** for HTTP and env config
 - **LLM providers:** Groq (default) or Anthropic — configured via `.env.local` (`LLM_PROVIDER`, API keys)
-- **Caching:** JSON files under `data/` via `state_manager.py` (4h TTL for holdings/history; permanent for LLM caches)
+- **Caching:** JSON files under `data/` via `state_manager.py` and module-local caches (`fund_news_client`, `company_client`, `alpha_calculator`). TTL: holdings/history 4h; fund_news 12h; company 24h; LLM caches permanent per filing
 
 ## Frontend
 
@@ -46,6 +48,11 @@ sa-fund-dashboard/
 - **@tanstack/react-query v5** for server-state (queries, mutations, cache invalidation)
 - **Recharts v2** for charts (`BucketChart`, `TimelineChart`)
 - **No Tailwind, no shadcn/ui, no Radix UI** — styling uses inline `style={{}}` objects and CSS custom properties
+
+## Product
+
+- **Name:** Situational Edge — Thesis Intelligence platform (not copy-trading, no recommendations)
+- **Positioning details:** `CLAUDE.md`, `possible_roadmap.md`
 
 ## Styling
 
@@ -58,8 +65,8 @@ sa-fund-dashboard/
 
 - Frontend calls `/api/*` endpoints (Vite proxy → `localhost:8000` in dev; same-origin on Vercel)
 - TypeScript interfaces in `types.ts` mirror Pydantic models in `models.py`
-- React Query `queryKey` conventions: `['holdings']`, `['analysis']`, `['strategy']`, `['history']`, etc.
-- Refresh: `POST /api/refresh` invalidates holdings + LLM + history caches
+- React Query `queryKey` conventions: `['holdings']`, `['analysis']`, `['strategy']`, `['history']`, `['fund-news']`, etc.
+- Refresh: `POST /api/refresh` invalidates holdings, LLM, history, and fund_news caches
 
 ## Deployment (Vercel)
 

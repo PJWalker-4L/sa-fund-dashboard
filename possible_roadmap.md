@@ -1,7 +1,28 @@
 # Possible Roadmap — Nutzerpotenzial, Monetarisierung & Strategie
 
 Stand: 2026-05-21  
-Kontext: SA Fund Dashboard — Analyse von Marktgröße, Monetarisierung und Ansätzen gegen das 13F-Lag-Problem.
+Kontext: **Situational Edge** — Thesis Intelligence für Situational Awareness Partners LP. Analyse von Marktgröße, Monetarisierung und Ansätzen gegen das 13F-Lag-Problem.
+
+---
+
+## Produkt & Solution Statement
+
+**Produktname:** Situational Edge  
+**Positionierung:** Thesis Intelligence — kein Copy-Trading-Tool, keine Empfehlungen.
+
+> Leopold Aschenbrenner's $13B hedge fund Situational Awareness is betting on the physical bottlenecks of the AGI decade: power, chips, cooling, memory. The trades are public — but buried in 45-day-old SEC filings, opaque options data, and a 165-page essay.
+>
+> Situational Edge decodes the portfolio, maps every position to the thesis behind it, and surfaces the infrastructure constraints and supply chain ripple effects driving the bets.
+>
+> A fact-based intelligence layer for sovereign investors navigating the AGI decade. No recommendations. No copy-trading. Just the map you need to form your own conviction.
+
+**Drei Säulen (Produktarchitektur):**
+
+| Säule | Was | Dashboard-Beispiele |
+|-------|-----|---------------------|
+| **Data Decoding** | Fakten, unkommentiert | 13F-Allokation, Timeline, 13D/13G (geplant), Fund News |
+| **Thesis Mapping** | Trades im intellektuellen Kontext | Thesis Stack, AI Insight, Essay-Anchor (geplant) |
+| **Thematic Radar** | Markt & Wertschöpfungskette | Value Chain Mapping, Schatten-Index (geplant) |
 
 ---
 
@@ -147,8 +168,77 @@ Business-seitig zunächst als **hochwertiges Research-Produkt** mit kleiner Basi
 
 ---
 
-## H) Nächste Schritte (optional)
+## H) Nächste Schritte
+
+Priorisierte Roadmap Richtung **Thesis Intelligence** — drei Säulen: **Data Decoding** (Fakten) · **Thesis Mapping** (Kontext) · **Thematic Radar** (Analyse). Reihenfolge: höchster Produktwert × niedrigster Aufwand × niedrigstes Risiko.
+
+### Priorisierte Roadmap (6 Wochen)
+
+| Woche | Schritt | Säule | Aufwand | Wirkung |
+|-------|---------|-------|---------|---------|
+| 1 | Repositionierung im UI | Brand / Compliance | Sehr niedrig | Hoch |
+| 2 | 13D/13G-Tracking | Data Decoding | Niedrig | Sehr hoch |
+| 3–4 | Thesis-Anchor (Essay-Kapitel-Verknüpfung) | Thesis Mapping | Mittel | Maximal (Moat) |
+| 5–6 | Value Chain Mapping + Confidence-Layer | Thematic Radar + Brand | Mittel | Hoch |
+
+**Priorisierungslogik:** Klammer setzen → Lag-Reducer bauen → Differenzierender Moat (Essay) → Compliance-Skalierung (Value Chain + Confidence) → erst danach komplexe Modelle (Backtest, Schatten-Index, Options-Flow).
+
+---
+
+### Schritt-für-Schritt (Detail)
+
+#### 1. Repositionierung im UI
+- **Säule:** Brand / Compliance
+- **Warum zuerst:** Funktionierendes Dashboard vorhanden — Messaging entscheidet, ob Nutzer „Thesis Intelligence" oder „weiteres 13F-Tool" sehen.
+- **Konkret:** Header/Produktname **Situational Edge**, Drei-Säulen-Statement, Compliance-Statement (*„No recommendations. No copy-trading. Just the map."*), Section-Labels an bestehenden Panels (AI Insight → Thesis Mapping, Timeline → Data Decoding, …)
+- **Aufwand:** ~1 Tag
+
+#### 2. 13D/13G-Tracking
+- **Säule:** Data Decoding
+- **Warum:** Einziges neues Signal mit harter regulatorischer Basis und echter Lag-Reduktion (45 Tage → wenige Tage).
+- **Konkret:** `sec_client` um SC 13D/13G erweitern, Endpoint `/api/threshold-filings`, Alert-Banner oder Mini-Panel, ADR dokumentieren
+- **Aufwand:** 2–3 Tage
+
+#### 3. Thesis-Anchor — Essay-Kapitel-Verknüpfung
+- **Säule:** Thesis Mapping
+- **Warum:** Kern von „Thesis Intelligence" — deterministische Verknüpfung Trade → Essay-Kapitel als Moat, den Wettbewerber ohne Domänenwissen nicht replizieren.
+- **Konkret:** Strukturierte Essay-Map (`thesis_anchors.py`), `thesis_anchor` pro Holding, UI: Klick auf Holding → Essay-Zitat + Kapitelreferenz im Drawer
+- **Aufwand:** 3–5 Tage (Content-Arbeit)
+
+#### 4. Value Chain Mapping
+- **Säule:** Thematic Radar
+- **Warum:** Erfüllt Säule 3 — wertfreie Auflistung struktureller Profiteure entlang der Kette, compliance-freundlich.
+- **Konkret:** Statische Value-Chain-Map pro Thesis-Layer, Panel „Value Chain Exposure" (nicht gehaltene Zulieferer, die von SA-Positionen profitieren würden)
+- **Aufwand:** ~1 Woche
+
+#### 5. Confidence-Layer global
+- **Säule:** Brand + Pro-Vorbereitung
+- **Warum:** Verschiedene Datenqualitäten (SEC vs. LLM vs. manuell vs. RSS) werden sichtbar — Brücke zur Free/Pro-Differenzierung.
+- **Konkret:** Badge `High | Medium | Low` pro Insight, Tooltip mit Quelle
+- **Aufwand:** ~2 Tage
+
+#### 6. Lag-aware Backtest
+- **Säule:** Data Decoding (Aufklärung)
+- **Warum später:** Zeigt, dass blindes Copy-Trading scheitert — aber mit nur 6 Filings (Q4 2024–Q1 2026) noch begrenzter Aussagewert.
+- **Aufwand:** Mittel–hoch · **Wirkung steigt** mit jedem neuen Filing
+
+#### 7. Schatten-Index light
+- **Säule:** Thematic Radar
+- **Warum:** Elegante Säule-3-Umsetzung, aber datenintensiv — MVP mit 3–5 robusten Proxies (CapEx, Transformer-Wartezeiten, Uran-Spot).
+- **Aufwand:** Hoch
+
+#### 8. Options-Flow
+- **Säule:** Data Decoding
+- **Warum zuletzt:** Methodisch heikel, hohe False-Positive-Rate, Compliance-Risiko — erst nach Confidence-Framework und klaren Säulen 1–3.
+- **Aufwand:** Hoch · **Priorität:** Niedrig
+
+---
+
+### Offene Punkte (ChatGPT, noch nicht bearbeitet)
+
+> Diese Punkte stammen aus der initialen ChatGPT-Analyse und sind noch nicht mit der obigen Roadmap abgeglichen.
 
 - [ ] 12-Wochen Produkt- und Monetarisierungs-Roadmap mit KPI-Zielen
 - [ ] Go/No-Go-Kriterien pro Feature-Phase
 - [ ] Messaging-Update: „Thesis Intelligence" statt „Portfolio Tracker"
+
