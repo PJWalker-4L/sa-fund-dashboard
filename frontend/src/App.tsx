@@ -430,50 +430,47 @@ export default function App() {
               {timelineBlock}
               <BucketChart buckets={data!.buckets} holdings={data!.holdings} onPositionClick={openDrawer} />
               <div className="kpi-grid">{kpiStrip}</div>
+              <LLMInsight
+                data={analysis.data}
+                isLoading={analysis.isLoading || refreshAnalysis.isPending}
+                onRefresh={() => refreshAnalysis.mutate()}
+                tickerNames={tickerNames}
+                onTickerClick={handleTickerClick}
+              />
+              <ThesisInsight
+                holdings={data!.holdings}
+                strategy={strategyQuery.data}
+                isLoading={strategyQuery.isLoading || refreshStrategy.isPending}
+                onRefresh={() => refreshStrategy.mutate()}
+                tickerNames={tickerNames}
+                onTickerClick={handleTickerClick}
+              />
+              <PanelShell label="Holdings" flush>
+                <div style={{
+                  padding: '10px 16px',
+                  borderBottom: '1px solid var(--border)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}>
+                  <span style={{ fontSize: 11, color: 'var(--text-3)' }}>
+                    {statusFilter
+                      ? `${data!.holdings.filter(h => h.status === statusFilter).length} shown`
+                      : `${data!.holdings.length} positions`}
+                  </span>
+                  <DeltaBadge
+                    newCount={data!.delta.new_count}
+                    closedCount={data!.delta.closed_count}
+                    increasedCount={data!.delta.increased_count}
+                    decreasedCount={data!.delta.decreased_count}
+                    filter={statusFilter}
+                    onFilter={setStatusFilter}
+                  />
+                </div>
+                <HoldingsTable holdings={data!.holdings} statusFilter={statusFilter} onTickerClick={handleTickerClick} />
+              </PanelShell>
             </div>
           )}
-
-          <div className="page-content">
-            <LLMInsight
-              data={analysis.data}
-              isLoading={analysis.isLoading || refreshAnalysis.isPending}
-              onRefresh={() => refreshAnalysis.mutate()}
-              tickerNames={tickerNames}
-              onTickerClick={handleTickerClick}
-            />
-            <ThesisInsight
-              holdings={data!.holdings}
-              strategy={strategyQuery.data}
-              isLoading={strategyQuery.isLoading || refreshStrategy.isPending}
-              onRefresh={() => refreshStrategy.mutate()}
-              tickerNames={tickerNames}
-              onTickerClick={handleTickerClick}
-            />
-            <PanelShell label="Holdings" flush>
-              <div style={{
-                padding: '10px 16px',
-                borderBottom: '1px solid var(--border)',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}>
-                <span style={{ fontSize: 11, color: 'var(--text-3)' }}>
-                  {statusFilter
-                    ? `${data!.holdings.filter(h => h.status === statusFilter).length} shown`
-                    : `${data!.holdings.length} positions`}
-                </span>
-                <DeltaBadge
-                  newCount={data!.delta.new_count}
-                  closedCount={data!.delta.closed_count}
-                  increasedCount={data!.delta.increased_count}
-                  decreasedCount={data!.delta.decreased_count}
-                  filter={statusFilter}
-                  onFilter={setStatusFilter}
-                />
-              </div>
-              <HoldingsTable holdings={data!.holdings} statusFilter={statusFilter} onTickerClick={handleTickerClick} />
-            </PanelShell>
-          </div>
         </main>
       </div>
 
