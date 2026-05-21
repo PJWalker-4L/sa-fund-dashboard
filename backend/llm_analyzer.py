@@ -77,10 +77,23 @@ SHORT BOOK & PUT OPTIONS (critical — read carefully):
 - Q1 2026 example: SA held multi-billion-dollar puts on SMH, NVDA, AVGO, AMD, MU, ORCL, ASML, TSM, INTC, GLW — a macro short against the consensus semiconductor trade while staying long power/infrastructure.
 - Shares and calls = bullish expression. Puts = bearish expression. Always state the instrument type when citing a position.
 
-Write exactly 3 labeled paragraphs, max 230 words total:
-▸ CONVICTION: Which layer(s) dominate by AUM weight? Is this consistent with SA's known thesis priorities and the current bottleneck order?
-▸ GAPS: Which layers are absent or underweight vs. what the SA paper identifies as critical? What does that signal about where the fund sees risk or saturation?
-▸ SIGNAL: One forward-looking implication — what does this allocation tell us about where SA believes the bottleneck is tightening next?\
+WHY SA SHORTS SEMICONDUCTORS (use this logic when explaining large put books — do not just label "bearish"):
+- SA's thesis: the binding constraint on AGI is NOT chips/GPUs — it is power, land, cooling, and physical infrastructure. The consensus AI trade (NVDA, SMH, mega-cap semis) prices in a "silicon is the bottleneck" narrative SA explicitly rejects as saturated.
+- Q4 2025 pivot: exited NVDA/AVGO longs because the silicon bottleneck was "already priced in." Q1 2026 puts on SMH/NVDA/AVGO/AMD/MU/TSM extend that view via options — expression without selling short stock.
+- SMH puts (~$2B): macro basket short on the crowded semiconductor/AI-hardware trade — a single expression of "consensus is overallocated to chip makers."
+- ORCL puts: hedge against enterprise/cloud AI hype — software multiples that assume frictionless AI ROI while SA bets capex flows to physical layers first.
+- Selective semi longs (e.g. SNDK storage, small INTC foundry bet) coexist with puts — SA is NOT anti-semiconductor entirely; it is short the consensus trade while long specific bottleneck sub-layers (storage, US foundry) it views as mispriced.
+
+WRITING STYLE:
+- Write for a professional buy-side / hedge fund audience. Sound like a senior analyst briefing PMs — not a summary bot.
+- Never stop at labels ("bearish on semis"). Always explain WHY the positioning is rational given SA's thesis.
+- When citing puts or large shorts, add 2–3 sentences of causal reasoning (valuation, consensus positioning, capex rotation, bottleneck shift).
+- Use concrete tickers and $ notionals. Connect portfolio facts to thesis logic.
+
+Write exactly 3 labeled paragraphs, max 380 words total:
+▸ CONVICTION: Which layer(s) dominate by AUM weight? Is this consistent with SA's known thesis priorities? If puts are large, explain WHY SA would express that bearish view — not just that it exists.
+▸ GAPS: Which layers are absent or underweight vs. the SA paper's bottleneck order? What does that signal about saturation vs. opportunity?
+▸ SIGNAL: Forward-looking implication — where is the bottleneck tightening next, and how does the put book vs. long book express that view?\
 """
 
 _STRATEGY_TEMPLATE = """\
@@ -99,7 +112,10 @@ TOP PUT POSITIONS (bearish expression):
 TOP HOLDINGS BY VALUE (instrument type shown):
 {top_holdings}
 
-Write the CONVICTION / GAPS / SIGNAL analysis. Always distinguish SHARE/CALL (bullish) from PUT (bearish).\
+Write CONVICTION / GAPS / SIGNAL for a professional audience.
+- Distinguish SHARE/CALL (bullish) from PUT (bearish).
+- When discussing put books (especially SMH, NVDA, ORCL, AVGO, AMD, MU, TSM): explain the investment rationale — why SA would short the consensus semiconductor trade while staying long power/infrastructure. Do not merely state "bearish on semis."
+- Each paragraph must contain at least one because/therefore chain linking positions to thesis logic.\
 """
 
 
@@ -328,7 +344,7 @@ async def analyze_strategy(
         top_holdings="\n".join(top_lines),
     )
 
-    text = await _call(prompt, _STRATEGY_SYSTEM)
+    text = await _call(prompt, _STRATEGY_SYSTEM, max_tokens=900)
     save_strategy(filing_key, text)
     return text, False
 
@@ -377,18 +393,18 @@ def _ssl_ctx():
     return ctx
 
 
-async def _call(user_prompt: str, system: str) -> str:
+async def _call(user_prompt: str, system: str, max_tokens: int = 500) -> str:
     if _PROVIDER == "groq" and _GROQ_KEY:
-        return await _call_groq(user_prompt, system)
+        return await _call_groq(user_prompt, system, max_tokens)
     elif _PROVIDER == "anthropic" and _ANTHROPIC_KEY:
-        return await _call_anthropic(user_prompt, system)
+        return await _call_anthropic(user_prompt, system, max_tokens)
     return (
         "LLM analysis unavailable — add GROQ_API_KEY or ANTHROPIC_API_KEY to your .env file.\n"
         "(Groq free tier: https://console.groq.com)"
     )
 
 
-async def _call_groq(user_prompt: str, system: str) -> str:
+async def _call_groq(user_prompt: str, system: str, max_tokens: int = 500) -> str:
     async with httpx.AsyncClient(timeout=30, verify=_ssl_ctx()) as client:
         r = await client.post(
             "https://api.groq.com/openai/v1/chat/completions",
@@ -399,7 +415,7 @@ async def _call_groq(user_prompt: str, system: str) -> str:
                     {"role": "system", "content": system},
                     {"role": "user", "content": user_prompt},
                 ],
-                "max_tokens": 500,
+                "max_tokens": max_tokens,
                 "temperature": 0.3,
             },
         )
@@ -407,7 +423,7 @@ async def _call_groq(user_prompt: str, system: str) -> str:
         return r.json()["choices"][0]["message"]["content"].strip()
 
 
-async def _call_anthropic(user_prompt: str, system: str) -> str:
+async def _call_anthropic(user_prompt: str, system: str, max_tokens: int = 500) -> str:
     async with httpx.AsyncClient(timeout=30, verify=_ssl_ctx()) as client:
         r = await client.post(
             "https://api.anthropic.com/v1/messages",
@@ -418,7 +434,7 @@ async def _call_anthropic(user_prompt: str, system: str) -> str:
             },
             json={
                 "model": "claude-haiku-4-5-20251001",
-                "max_tokens": 500,
+                "max_tokens": max_tokens,
                 "system": system,
                 "messages": [{"role": "user", "content": user_prompt}],
             },
