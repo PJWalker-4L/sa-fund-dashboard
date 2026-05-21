@@ -1,4 +1,4 @@
-import type { FilingMeta } from '../types'
+﻿import type { FilingMeta } from '../types'
 
 export type DashboardTab = 'portfolio' | 'indicators'
 
@@ -144,7 +144,7 @@ export default function Header({
             style={{
               padding: '4px 12px',
               height: 26,
-              background: chatOpen ? 'rgba(30,232,212,0.12)' : 'transparent',
+              background: chatOpen ? 'rgba(0,200,224,0.12)' : 'transparent',
               border: `1px solid ${chatOpen ? 'var(--teal)' : 'var(--border-hi)'}`,
               color: chatOpen ? 'var(--teal)' : 'var(--text-2)',
               cursor: 'pointer',
@@ -154,7 +154,7 @@ export default function Header({
               fontFamily: 'var(--font)',
               textTransform: 'uppercase',
               transition: 'all 0.15s',
-              boxShadow: chatOpen ? '0 0 10px rgba(30,232,212,0.2)' : 'none',
+              boxShadow: chatOpen ? '0 0 10px rgba(0,200,224,0.2)' : 'none',
             }}
           >
             ✦ Chat

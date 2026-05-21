@@ -211,10 +211,10 @@ export default function HoldingsMap({
 
           const countryFeature = countries.find(c => String(c.id ?? '') === id)
           const borderOpacity = isHovered && hasHoldings ? 0.9 : hasHoldings ? 0.7 : isHovered ? 0.4 : 0.2
-          const borderStroke = isHovered && hasHoldings ? '#1ee8d4' : hasHoldings ? 'rgba(30,232,212,0.5)' : '#2a3a5a'
+          const borderStroke = isHovered && hasHoldings ? '#00c8e0' : hasHoldings ? 'rgba(0,200,224,0.45)' : '#1a2a4a'
           const borderWidth = isHovered && hasHoldings ? 1.5 : hasHoldings ? 1.0 : 0.6
           const dotOpacity = isHovered && hasHoldings ? 0.9 : isHovered ? 0.6 : hasHoldings ? 0.65 : 0.22
-          const dotColor = hasHoldings ? '#1ee8d4' : 'var(--text-1)'
+          const dotColor = hasHoldings ? '#00c8e0' : 'rgba(180,215,255,0.7)'
 
           return (
             <g
@@ -291,8 +291,8 @@ export default function HoldingsMap({
           position: 'absolute',
           left: 16,
           bottom: 16,
-          background: 'rgba(12, 17, 32, 0.95)',
-          border: '1px solid var(--border-hi)',
+          background: 'rgba(7, 20, 40, 0.96)',
+          border: '1px solid rgba(0,200,224,0.25)',
           padding: '10px 14px',
           minWidth: 180,
           pointerEvents: 'none',

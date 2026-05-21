@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+﻿import { useState, type ReactNode } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   fetchHoldings, fetchAnalysis, fetchMovers, triggerRefresh, fetchAlpha,
@@ -150,7 +150,7 @@ export default function App() {
           {/* TL accent */}
           <div style={{ position: 'absolute', top: -1, left: -1, width: 12, height: 12, borderTop: '1px solid var(--teal)', borderLeft: '1px solid var(--teal)' }} />
           {/* BR accent */}
-          <div style={{ position: 'absolute', bottom: -1, right: -1, width: 12, height: 12, borderBottom: '1px solid rgba(30,232,212,0.4)', borderRight: '1px solid rgba(30,232,212,0.4)' }} />
+          <div style={{ position: 'absolute', bottom: -1, right: -1, width: 12, height: 12, borderBottom: '1px solid rgba(0,200,224,0.4)', borderRight: '1px solid rgba(0,200,224,0.4)' }} />
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 16, justifyContent: 'center' }}>
             <span style={{ fontFamily: 'var(--mono)', fontWeight: 700, fontSize: 16, letterSpacing: '0.18em', color: 'var(--text-1)' }}>SITUATIONAL</span>
             <span style={{ fontFamily: 'var(--mono)', fontWeight: 700, fontSize: 16, letterSpacing: '0.18em', color: 'var(--teal)', textShadow: '0 0 14px var(--teal-glow)' }}>EDGE</span>

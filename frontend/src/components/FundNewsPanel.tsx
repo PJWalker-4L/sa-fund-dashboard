@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import type { FundNewsResponse, FundNewsItem } from '../types'
 
 interface Props {
@@ -115,8 +115,8 @@ export default function FundNewsPanel({ data, onTickerClick }: Props) {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        background: 'linear-gradient(180deg, rgba(30,232,212,0.04) 0%, transparent 100%)',
-        borderTop: '1px solid rgba(30,232,212,0.2)',
+        background: 'linear-gradient(180deg, rgba(0,200,224,0.04) 0%, transparent 100%)',
+        borderTop: '1px solid rgba(0,200,224,0.2)',
       }}>
         <span style={{
           fontSize: 9,
@@ -154,11 +154,11 @@ export default function FundNewsPanel({ data, onTickerClick }: Props) {
                 letterSpacing: '0.06em',
                 fontFamily: 'var(--font)',
                 border: `1px solid ${active ? 'var(--teal)' : 'var(--border-hi)'}`,
-                background: active ? 'rgba(30,232,212,0.08)' : 'transparent',
+                background: active ? 'rgba(0,200,224,0.08)' : 'transparent',
                 color: active ? 'var(--teal)' : 'var(--text-3)',
                 cursor: 'pointer',
                 textTransform: 'uppercase',
-                boxShadow: active ? '0 0 8px rgba(30,232,212,0.15)' : 'none',
+                boxShadow: active ? '0 0 8px rgba(0,200,224,0.15)' : 'none',
                 transition: 'all 0.15s',
               }}
             >

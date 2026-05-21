@@ -1,4 +1,4 @@
-/* Situational Edge — deep navy, military-precision, high-end */
+﻿/* Situational Edge — deep navy, military-precision, high-end */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 button, input, select, textarea,
@@ -7,27 +7,29 @@ button, input, select, textarea,
 }
 
 :root {
-  --bg:         #020810;
-  --surface:    #040c14;
-  --surface-hi: #071018;
-  --border:     #0c1828;
-  --border-hi:  #142840;
-  --text-1:     #eef4fc;
-  --text-2:     #6b8aaa;
-  --text-3:     #3d5570;
+  /* ── Blue-navy palette (matched to NEXUS-1 reference) ── */
+  --bg:         #040a1a;
+  --surface:    #071428;
+  --surface-hi: #0c1c38;
+  --border:     #102440;
+  --border-hi:  #1c3860;
+  --text-1:     #ddeeff;
+  --text-2:     #5580a8;
+  --text-3:     #2c4868;
   --green:      #1cd47c;
   --red:        #f04444;
-  --blue:       #30b8f5;
+  --blue:       #3ab0ff;
   --orange:     #f97316;
   --yellow:     #f5c030;
   --purple:     #9b72ff;
-  --teal:       #1ee8d4;
-  --teal-dim:   rgba(30,232,212,0.10);
-  --teal-glow:  rgba(30,232,212,0.32);
-  /* Grid overlay — applied via background-image on all surfaces */
+  /* Accent: pure cyan-blue (#00c8e0) — matches NEXUS reference exactly */
+  --teal:       #00c8e0;
+  --teal-dim:   rgba(0,200,224,0.10);
+  --teal-glow:  rgba(0,200,224,0.35);
+  /* Grid lines in matching cyan-blue */
   --grid:
-    linear-gradient(rgba(30,232,212,0.022) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(30,232,212,0.022) 1px, transparent 1px);
+    linear-gradient(rgba(0,200,224,0.026) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,200,224,0.026) 1px, transparent 1px);
   --grid-size: 42px 42px;
   --font:       'Barlow Semi Condensed', system-ui, sans-serif;
   --mono:       'JetBrains Mono', 'Fira Code', monospace;
@@ -86,7 +88,7 @@ button { font-family: var(--font); }
   box-shadow:
     0 4px 32px rgba(0,0,0,0.75),
     inset 0 1px 0 rgba(255,255,255,0.02),
-    0 0 0 1px rgba(30,232,212,0.03);
+    0 0 0 1px rgba(0,200,224,0.03);
 }
 
 /* TL corner accent */
@@ -107,8 +109,8 @@ button { font-family: var(--font); }
   position: absolute;
   bottom: -1px; right: -1px;
   width: 14px; height: 14px;
-  border-bottom: 1px solid rgba(30,232,212,0.3);
-  border-right: 1px solid rgba(30,232,212,0.3);
+  border-bottom: 1px solid rgba(0,200,224,0.3);
+  border-right: 1px solid rgba(0,200,224,0.3);
   pointer-events: none;
   z-index: 2;
 }
@@ -166,8 +168,8 @@ button { font-family: var(--font); }
   min-height: 0;
   flex: 1;
   /* Teal top edge — "mission panel" feel */
-  border-top: 1px solid rgba(30,232,212,0.25);
-  box-shadow: 0 -4px 20px rgba(30,232,212,0.05);
+  border-top: 1px solid rgba(0,200,224,0.25);
+  box-shadow: 0 -4px 20px rgba(0,200,224,0.05);
 }
 
 .three-col-grid > .col-left,
@@ -240,9 +242,9 @@ button { font-family: var(--font); }
 .col-header {
   padding: 9px 16px;
   border-bottom: 1px solid var(--border);
-  background: linear-gradient(180deg, rgba(30,232,212,0.04) 0%, transparent 100%);
+  background: linear-gradient(180deg, rgba(0,200,224,0.04) 0%, transparent 100%);
   /* Teal highlight at top edge of each column */
-  border-top: 1px solid rgba(30,232,212,0.2);
+  border-top: 1px solid rgba(0,200,224,0.2);
 }
 
 .col-header-label {
@@ -290,8 +292,8 @@ button { font-family: var(--font); }
   color: var(--teal);
   font-family: var(--font);
   /* Badge treatment */
-  background: rgba(30,232,212,0.08);
-  border: 1px solid rgba(30,232,212,0.2);
+  background: rgba(0,200,224,0.08);
+  border: 1px solid rgba(0,200,224,0.2);
   padding: 1px 6px;
   text-shadow: 0 0 8px var(--teal-glow);
 }
@@ -327,7 +329,7 @@ button { font-family: var(--font); }
 
 .kpi-bar {
   height: 2px;
-  background: rgba(30,232,212,0.08);
+  background: rgba(0,200,224,0.08);
   margin-top: 6px;
   position: relative;
   overflow: visible;
@@ -374,7 +376,7 @@ button { font-family: var(--font); }
 }
 
 .view-toggle-btn.active {
-  background: rgba(30,232,212,0.08);
+  background: rgba(0,200,224,0.08);
   color: var(--teal);
   text-shadow: 0 0 8px var(--teal-glow);
 }
@@ -401,8 +403,8 @@ button { font-family: var(--font); }
   position: absolute;
   bottom: -1px; right: -1px;
   width: 14px; height: 14px;
-  border-bottom: 1px solid rgba(30,232,212,0.3);
-  border-right: 1px solid rgba(30,232,212,0.3);
+  border-bottom: 1px solid rgba(0,200,224,0.3);
+  border-right: 1px solid rgba(0,200,224,0.3);
   pointer-events: none;
   z-index: 2;
 }
@@ -493,5 +495,5 @@ button { font-family: var(--font); }
 
 @keyframes glow-pulse {
   0%, 100% { box-shadow: 0 0 4px var(--teal-glow); }
-  50% { box-shadow: 0 0 14px var(--teal-glow), 0 0 28px rgba(30,232,212,0.12); }
+  50% { box-shadow: 0 0 14px var(--teal-glow), 0 0 28px rgba(0,200,224,0.12); }
 }
