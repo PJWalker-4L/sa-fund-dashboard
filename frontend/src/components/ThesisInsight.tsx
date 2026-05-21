@@ -1,11 +1,14 @@
 import { useState } from 'react'
 import type { HoldingRow, StrategyResponse } from '../types'
+import LinkedTickerText from './LinkedTickerText'
 
 interface Props {
   holdings: HoldingRow[]
   strategy: StrategyResponse | undefined
   isLoading: boolean
   onRefresh: () => void
+  tickerNames: Record<string, string>
+  onTickerClick?: (ticker: string) => void
 }
 
 const LAYERS = [
@@ -53,7 +56,7 @@ function fmtValue(v: number): string {
   return `$${v.toFixed(0)}K`
 }
 
-export default function ThesisInsight({ holdings, strategy, isLoading, onRefresh }: Props) {
+export default function ThesisInsight({ holdings, strategy, isLoading, onRefresh, tickerNames, onTickerClick }: Props) {
   const [collapsed, setCollapsed] = useState(false)
 
   const totalAum = holdings.reduce((s, h) => s + h.value, 0)
@@ -226,7 +229,15 @@ export default function ThesisInsight({ holdings, strategy, isLoading, onRefresh
             }}>
               {isLoading
                 ? <span className="pulse" style={{ color: 'var(--text-3)' }}>——</span>
-                : (strategy?.commentary ?? 'No strategy commentary available.')}
+                : strategy?.commentary
+                ? (
+                  <LinkedTickerText
+                    text={strategy.commentary}
+                    tickerNames={tickerNames}
+                    onTickerClick={onTickerClick}
+                  />
+                )
+                : 'No strategy commentary available.'}
             </div>
           </div>
         </div>

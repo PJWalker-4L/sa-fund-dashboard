@@ -11,6 +11,7 @@ import DeltaBadge from './components/DeltaBadge'
 import HoldingsTable from './components/HoldingsTable'
 import CompanyDrawer from './components/CompanyDrawer'
 import ChatPanel from './components/ChatPanel'
+import { buildTickerNameMap } from './components/LinkedTickerText'
 import type { HoldingRow } from './types'
 
 export default function App() {
@@ -133,6 +134,8 @@ export default function App() {
   const topPutLabel = data!.put_count > 0
     ? `${data!.put_count} put position${data!.put_count !== 1 ? 's' : ''}`
     : 'no put options'
+
+  const tickerNames = buildTickerNameMap(data!.holdings)
 
   const topName = data!.top_holding_name
     ? data!.top_holding_name.split(' ').slice(0, 3).join(' ')
@@ -295,6 +298,8 @@ export default function App() {
           data={analysis.data}
           isLoading={analysis.isLoading || refreshAnalysis.isPending}
           onRefresh={() => refreshAnalysis.mutate()}
+          tickerNames={tickerNames}
+          onTickerClick={handleTickerClick}
         />
 
         {/* Thesis Stack */}
@@ -303,6 +308,8 @@ export default function App() {
           strategy={strategyQuery.data}
           isLoading={strategyQuery.isLoading || refreshStrategy.isPending}
           onRefresh={() => refreshStrategy.mutate()}
+          tickerNames={tickerNames}
+          onTickerClick={handleTickerClick}
         />
 
         {/* Holdings Table */}

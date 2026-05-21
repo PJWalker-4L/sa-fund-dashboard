@@ -1,13 +1,16 @@
 import { useState } from 'react'
 import type { AnalysisResponse } from '../types'
+import LinkedTickerText from './LinkedTickerText'
 
 interface Props {
   data: AnalysisResponse | undefined
   isLoading: boolean
   onRefresh: () => void
+  tickerNames: Record<string, string>
+  onTickerClick?: (ticker: string) => void
 }
 
-export default function LLMInsight({ data, isLoading, onRefresh }: Props) {
+export default function LLMInsight({ data, isLoading, onRefresh, tickerNames, onTickerClick }: Props) {
   const [collapsed, setCollapsed] = useState(false)
 
   return (
@@ -78,7 +81,15 @@ export default function LLMInsight({ data, isLoading, onRefresh }: Props) {
         }}>
           {isLoading
             ? <span className="pulse" style={{ color: 'var(--text-3)' }}>——</span>
-            : (data?.analysis ?? 'No analysis available.')}
+            : data?.analysis
+            ? (
+              <LinkedTickerText
+                text={data.analysis}
+                tickerNames={tickerNames}
+                onTickerClick={onTickerClick}
+              />
+            )
+            : 'No analysis available.'}
         </div>
       )}
     </div>
