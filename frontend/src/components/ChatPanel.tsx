@@ -22,7 +22,7 @@ interface Props {
 export default function ChatPanel({ onClose }: Props) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
-  const [model, setModel] = useState(MODELS[0].value)
+  const [model, setModel] = useState(MODELS[1].value)
   const [isLoading, setIsLoading] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)

@@ -335,27 +335,13 @@ async def chat(req: ChatRequest):
             "ticker": str(row.get("ticker") or ""),
             "nameOfIssuer": str(row.get("nameOfIssuer", "")),
             "value": float(row.get("value") or 0),
+            "putCall": state_manager.normalize_put_call(row.get("putCall")),
             "thesis_role": get_thesis_role(str(row.get("ticker") or ""), str(row.get("nameOfIssuer", ""))),
         }
         for _, row in curr_df.iterrows()
     ]
-    total_aum = sum(h["value"] for h in holdings_list)
-    top15 = sorted(holdings_list, key=lambda h: h["value"], reverse=True)[:15]
 
-    ctx_lines = [
-        f"Filing period: {curr_meta.get('period_of_report', 'unknown')}",
-        f"Total AUM: ~${total_aum / 1_000_000:.1f}B across {len(holdings_list)} positions",
-        "",
-        "TOP 15 HOLDINGS:",
-    ]
-    for h in top15:
-        label = h["ticker"] or h["nameOfIssuer"][:20]
-        pct = h["value"] / total_aum * 100 if total_aum else 0
-        ctx_lines.append(
-            f"  {label} ({h['thesis_role'] or 'Other'}) — ${h['value'] / 1_000_000:.2f}B · {pct:.1f}% AUM"
-        )
-
-    portfolio_context = "\n".join(ctx_lines)
+    portfolio_context = llm_analyzer.build_portfolio_context_for_chat(holdings_list, curr_meta)
     history = [{"role": m.role, "content": m.content} for m in req.history]
 
     try:

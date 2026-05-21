@@ -512,14 +512,73 @@ FUND PHILOSOPHY:
 AI Infrastructure (miner→HPC arbitrage), Optical Interconnects, Storage.
 - Q4 2025 pivot: sold NVDA/AVGO (priced in) — doubled down on power + infrastructure.
 - Fund: $254M → $5.5B AUM in 12 months. +47% H1 2025 vs S&P +6%.
-- Short book: industries disrupted BY AGI (e.g. IT services like Infosys).
+
+13F INSTRUMENT TYPES (critical):
+- SHARE = long equity. CALL = bullish option. PUT = bearish/short option expression.
+- Large put notional on a ticker (e.g. SMH VanEck Semiconductor ETF puts ~$2B) is NOT a long conviction \
+hold — it is a macro short against the crowded semiconductor trade.
+- When asked for the "largest position" or "biggest holding": answer with LARGEST LONG (SHARE/CALL) \
+unless the user explicitly asks about puts, short book, or total 13F notional ranking.
+- Never describe PUT lines as top long holdings or sector conviction.
+
+WHY SA HOLDS SEMI PUTS (SMH, NVDA, AVGO, AMD, MU, TSM, ORCL):
+- SA rejects "silicon is the bottleneck" as saturated; binding constraints are power, land, cooling, infrastructure.
+- Puts express that view without shorting stock. SMH puts = basket short on consensus semi/AI-hardware allocation.
 
 CURRENT PORTFOLIO:
 {portfolio_context}
 
-Answer concisely. Reference tickers and $ amounts where relevant. \
+Answer concisely. Always state instrument type (SHARE/CALL/PUT) when citing a position. \
+Reference tickers and $ amounts where relevant. \
 For companies NOT in the portfolio, reason from the SA thesis about likely exclusion rationale.\
 """
+
+
+def build_portfolio_context_for_chat(holdings: list[dict], curr_meta: dict) -> str:
+    """Instrument-aware portfolio snapshot for the chat system prompt."""
+    total_aum = sum(h.get("value", 0) for h in holdings)
+    longs = sorted(
+        [h for h in holdings if h.get("putCall") != "Put"],
+        key=lambda h: h.get("value", 0),
+        reverse=True,
+    )
+    puts = sorted(
+        [h for h in holdings if h.get("putCall") == "Put"],
+        key=lambda h: h.get("value", 0),
+        reverse=True,
+    )
+    top_by_notional = sorted(holdings, key=lambda h: h.get("value", 0), reverse=True)[:15]
+
+    lines = [
+        f"Filing period: {curr_meta.get('period_of_report', 'unknown')}",
+        f"Total 13F notional: ~${total_aum / 1_000_000:.1f}B across {len(holdings)} line items",
+        "",
+        "INSTRUMENT MIX (by 13F notional):",
+        f"  {_instrument_mix(holdings, total_aum)}",
+        "",
+        "LARGEST LONG POSITIONS (SHARE + CALL — use for 'biggest holding' / 'largest position'):",
+    ]
+    if longs:
+        for h in longs[:10]:
+            lines.append(f"  {_holding_line(h, total_aum)}")
+    else:
+        lines.append("  (none)")
+
+    lines.extend(["", "LARGEST PUT POSITIONS (bearish — NOT long holdings):"])
+    if puts:
+        for h in puts[:10]:
+            lines.append(f"  {_holding_line(h, total_aum)}")
+    else:
+        lines.append("  (none)")
+
+    lines.extend([
+        "",
+        "TOP 15 BY RAW 13F NOTIONAL (puts may rank #1 by $ — check instrument type):",
+    ])
+    for h in top_by_notional:
+        lines.append(f"  {_holding_line(h, total_aum)}")
+
+    return "\n".join(lines)
 
 
 async def chat_with_portfolio(
