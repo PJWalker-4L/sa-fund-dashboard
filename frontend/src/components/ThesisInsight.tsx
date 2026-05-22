@@ -82,11 +82,13 @@ export default function ThesisInsight({ holdings, strategy, isLoading, onRefresh
       .reduce((s, h) => s + h.value, 0)
 
   return (
-    <div style={{
-      background: 'var(--surface)',
+    <div className="nexus-surface" style={{
+      backgroundColor: 'var(--surface)',
+      backgroundImage: 'var(--grid)',
+      backgroundSize: '42px 42px',
       border: '1px solid var(--border)',
-      borderRadius: 6,
       padding: '12px 18px',
+      boxShadow: '0 4px 32px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.025)',
     }}>
       {/* Header */}
       <div style={{
@@ -137,7 +139,6 @@ export default function ThesisInsight({ holdings, strategy, isLoading, onRefresh
                   background: 'var(--surface-hi)',
                   border: `1px solid ${positions.length ? layer.color + '33' : 'var(--border)'}`,
                   borderLeft: `3px solid ${positions.length ? layer.color : 'var(--border)'}`,
-                  borderRadius: 4,
                   padding: '8px 10px',
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 3 }}>
@@ -171,7 +172,6 @@ export default function ThesisInsight({ holdings, strategy, isLoading, onRefresh
                           color: layer.color,
                           background: layer.color + '15',
                           border: `1px solid ${layer.color}40`,
-                          borderRadius: 3,
                           padding: '1px 5px',
                         }}>
                           {h.ticker ?? h.nameOfIssuer.split(' ')[0]}
@@ -204,7 +204,7 @@ export default function ThesisInsight({ holdings, strategy, isLoading, onRefresh
                 <span style={{
                   fontSize: 9, color: 'var(--text-3)',
                   background: 'var(--surface-hi)',
-                  padding: '1px 6px', borderRadius: 3, letterSpacing: '0.05em',
+                  padding: '1px 6px', letterSpacing: '0.05em',
                 }}>
                   CACHED
                 </span>

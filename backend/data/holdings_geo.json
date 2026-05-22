@@ -1,0 +1,242 @@
+{
+  "APLD": {
+    "city": "Dallas",
+    "country": "United States",
+    "lat": 32.7767,
+    "lng": -96.797
+  },
+  "AVGO": {
+    "city": "Palo Alto",
+    "country": "United States",
+    "lat": 37.4419,
+    "lng": -122.143
+  },
+  "BE": {
+    "city": "San Jose",
+    "country": "United States",
+    "lat": 37.3382,
+    "lng": -121.8863
+  },
+  "BITF": {
+    "city": "Toronto",
+    "country": "Canada",
+    "lat": 43.6532,
+    "lng": -79.3832
+  },
+  "BTDR": {
+    "city": "Singapore",
+    "country": "Singapore",
+    "lat": 1.3521,
+    "lng": 103.8198
+  },
+  "BW": {
+    "city": "Barberton",
+    "country": "United States",
+    "lat": 41.0128,
+    "lng": -81.6051
+  },
+  "CEG": {
+    "city": "Baltimore",
+    "country": "United States",
+    "lat": 39.2904,
+    "lng": -76.6122
+  },
+  "CIFR": {
+    "city": "New York",
+    "country": "United States",
+    "lat": 40.7128,
+    "lng": -74.006
+  },
+  "CLSK": {
+    "city": "Las Vegas",
+    "country": "United States",
+    "lat": 36.1699,
+    "lng": -115.1398
+  },
+  "COHR": {
+    "city": "Saxonburg",
+    "country": "United States",
+    "lat": 40.754,
+    "lng": -79.8109
+  },
+  "CORZ": {
+    "city": "Austin",
+    "country": "United States",
+    "lat": 30.2672,
+    "lng": -97.7431
+  },
+  "CRWV": {
+    "city": "Roseland",
+    "country": "United States",
+    "lat": 40.8207,
+    "lng": -74.2999
+  },
+  "EQT": {
+    "city": "Pittsburgh",
+    "country": "United States",
+    "lat": 40.4406,
+    "lng": -79.9959
+  },
+  "FSLR": {
+    "city": "Tempe",
+    "country": "United States",
+    "lat": 33.4255,
+    "lng": -111.94
+  },
+  "HUT": {
+    "city": "Toronto",
+    "country": "Canada",
+    "lat": 43.6532,
+    "lng": -79.3832
+  },
+  "INTC": {
+    "city": "Santa Clara",
+    "country": "United States",
+    "lat": 37.3541,
+    "lng": -121.9552
+  },
+  "IREN": {
+    "city": "Sydney",
+    "country": "Australia",
+    "lat": -33.8688,
+    "lng": 151.2093
+  },
+  "LBRT": {
+    "city": "Houston",
+    "country": "United States",
+    "lat": 29.7604,
+    "lng": -95.3698
+  },
+  "LITE": {
+    "city": "San Jose",
+    "country": "United States",
+    "lat": 37.3382,
+    "lng": -121.8863
+  },
+  "MRVL": {
+    "city": "Santa Clara",
+    "country": "United States",
+    "lat": 37.3541,
+    "lng": -121.9552
+  },
+  "MSTR": {
+    "city": "Tysons",
+    "country": "United States",
+    "lat": 38.9187,
+    "lng": -77.2311
+  },
+  "MU": {
+    "city": "Boise",
+    "country": "United States",
+    "lat": 43.615,
+    "lng": -116.2023
+  },
+  "NEE": {
+    "city": "Juno Beach",
+    "country": "United States",
+    "lat": 26.8797,
+    "lng": -80.0534
+  },
+  "NRG": {
+    "city": "Houston",
+    "country": "United States",
+    "lat": 29.7604,
+    "lng": -95.3698
+  },
+  "NVDA": {
+    "city": "Santa Clara",
+    "country": "United States",
+    "lat": 37.3541,
+    "lng": -121.9552
+  },
+  "ORCL": {
+    "city": "Austin",
+    "country": "United States",
+    "lat": 30.2672,
+    "lng": -97.7431
+  },
+  "PSIX": {
+    "city": "Wood Dale",
+    "country": "United States",
+    "lat": 41.9634,
+    "lng": -87.9789
+  },
+  "PUMP": {
+    "city": "Houston",
+    "country": "United States",
+    "lat": 29.7604,
+    "lng": -95.3698
+  },
+  "QCOM": {
+    "city": "San Diego",
+    "country": "United States",
+    "lat": 32.7157,
+    "lng": -117.1611
+  },
+  "RIOT": {
+    "city": "Castle Rock",
+    "country": "United States",
+    "lat": 39.3722,
+    "lng": -104.8561
+  },
+  "SEI": {
+    "city": "Houston",
+    "country": "United States",
+    "lat": 29.7604,
+    "lng": -95.3698
+  },
+  "SMH": {
+    "city": "New York",
+    "country": "United States",
+    "lat": 40.7128,
+    "lng": -74.006
+  },
+  "SNDK": {
+    "city": "Milpitas",
+    "country": "United States",
+    "lat": 37.4323,
+    "lng": -121.8996
+  },
+  "STX": {
+    "city": "Fremont",
+    "country": "United States",
+    "lat": 37.5485,
+    "lng": -121.9886
+  },
+  "TSEM": {
+    "city": "Migdal HaEmek",
+    "country": "Israel",
+    "lat": 32.675,
+    "lng": 35.239
+  },
+  "TSM": {
+    "city": "Hsinchu",
+    "country": "Taiwan",
+    "lat": 24.8066,
+    "lng": 120.9686
+  },
+  "VST": {
+    "city": "Irving",
+    "country": "United States",
+    "lat": 32.814,
+    "lng": -96.9489
+  },
+  "WDC": {
+    "city": "San Jose",
+    "country": "United States",
+    "lat": 37.3382,
+    "lng": -121.8863
+  },
+  "WULF": {
+    "city": "Norwalk",
+    "country": "United States",
+    "lat": 41.1176,
+    "lng": -73.4079
+  },
+  "WYFI": {
+    "city": "New York",
+    "country": "United States",
+    "lat": 40.7128,
+    "lng": -74.006
+  }
+}

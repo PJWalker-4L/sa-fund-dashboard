@@ -11,9 +11,9 @@ type NewsTab = 'keyword' | 'sec' | 'holding'
 const PAGE_SIZE = 10
 
 const TABS: { id: NewsTab; label: string }[] = [
-  { id: 'keyword', label: 'Presse' },
-  { id: 'sec', label: 'SEC-Nachrichten' },
-  { id: 'holding', label: 'Holdings-News' },
+  { id: 'keyword', label: 'Press' },
+  { id: 'sec', label: 'SEC News' },
+  { id: 'holding', label: 'Holdings News' },
 ]
 
 function fmtDate(ts: number): string {
@@ -36,8 +36,8 @@ function NewsRow({ item, onTickerClick }: {
       rel="noopener noreferrer"
       style={{
         display: 'block',
-        padding: '12px 18px',
-        borderBottom: '1px solid var(--border)',
+        padding: '10px 16px',
+        borderBottom: '1px solid rgba(17,34,56,0.8)',
         textDecoration: 'none',
         transition: 'background 0.15s',
       }}
@@ -53,7 +53,6 @@ function NewsRow({ item, onTickerClick }: {
               style={{
                 fontSize: 9,
                 padding: '1px 5px',
-                borderRadius: 3,
                 fontWeight: 700,
                 background: 'var(--surface-hi)',
                 color: 'var(--blue)',
@@ -68,11 +67,11 @@ function NewsRow({ item, onTickerClick }: {
           ) : null}
         </div>
       )}
-      <div style={{ fontSize: 12, color: 'var(--text-1)', lineHeight: 1.5, marginBottom: 4 }}>
+      <div style={{ fontSize: 11, color: 'var(--text-1)', lineHeight: 1.45, marginBottom: 4, fontFamily: 'var(--font)', fontWeight: 500 }}>
         {item.title}
       </div>
-      <div style={{ fontSize: 10, color: 'var(--text-3)', display: 'flex', gap: 8 }}>
-        <span>{item.publisher}</span>
+      <div style={{ fontSize: 9, color: 'var(--text-3)', display: 'flex', gap: 6, fontFamily: 'var(--font)', letterSpacing: '0.04em' }}>
+        <span style={{ color: 'var(--text-2)' }}>{item.publisher}</span>
         {item.published > 0 && <span>· {fmtDate(item.published)}</span>}
       </div>
     </a>
@@ -104,34 +103,42 @@ export default function FundNewsPanel({ data, onTickerClick }: Props) {
 
   return (
     <div style={{
-      background: 'var(--surface)',
+      backgroundColor: 'var(--surface)',
+      backgroundImage: 'var(--grid)',
+      backgroundSize: '42px 42px',
       border: '1px solid var(--border)',
-      borderRadius: 6,
       overflow: 'hidden',
     }}>
       <div style={{
-        padding: '10px 18px',
+        padding: '9px 16px',
         borderBottom: '1px solid var(--border)',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: 8,
+        background: 'linear-gradient(180deg, rgba(0,200,224,0.04) 0%, transparent 100%)',
+        borderTop: '1px solid rgba(0,200,224,0.2)',
       }}>
-        <span style={{ fontSize: 11, color: 'var(--text-2)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+        <span style={{
+          fontSize: 9,
+          fontWeight: 700,
+          letterSpacing: '0.16em',
+          textTransform: 'uppercase',
+          color: 'var(--teal)',
+          textShadow: '0 0 10px var(--teal-glow)',
+          fontFamily: 'var(--font)',
+        }}>
           Fund News Feed
         </span>
-        <span style={{ fontSize: 10, color: 'var(--text-3)' }}>
-          {filtered.length} article{filtered.length !== 1 ? 's' : ''}
+        <span style={{ fontSize: 9, color: 'var(--text-3)', fontFamily: 'var(--mono)' }}>
+          {filtered.length} articles
         </span>
       </div>
 
       <div style={{
-        padding: '8px 18px',
+        padding: '8px 16px',
         borderBottom: '1px solid var(--border)',
         display: 'flex',
         gap: 6,
-        flexWrap: 'wrap',
       }}>
         {TABS.map(t => {
           const active = tab === t.id
@@ -141,14 +148,18 @@ export default function FundNewsPanel({ data, onTickerClick }: Props) {
               type="button"
               onClick={() => selectTab(t.id)}
               style={{
-                fontSize: 11,
-                padding: '5px 12px',
-                borderRadius: 4,
-                border: `1px solid ${active ? 'var(--blue)' : 'var(--border)'}`,
-                background: active ? 'rgba(56, 189, 248, 0.12)' : 'transparent',
-                color: active ? 'var(--blue)' : 'var(--text-2)',
+                fontSize: 9,
+                padding: '4px 10px',
+                fontWeight: 700,
+                letterSpacing: '0.06em',
+                fontFamily: 'var(--font)',
+                border: `1px solid ${active ? 'var(--teal)' : 'var(--border-hi)'}`,
+                background: active ? 'rgba(0,200,224,0.08)' : 'transparent',
+                color: active ? 'var(--teal)' : 'var(--text-3)',
                 cursor: 'pointer',
-                fontWeight: active ? 600 : 400,
+                textTransform: 'uppercase',
+                boxShadow: active ? '0 0 8px rgba(0,200,224,0.15)' : 'none',
+                transition: 'all 0.15s',
               }}
             >
               {t.label}
@@ -190,7 +201,6 @@ export default function FundNewsPanel({ data, onTickerClick }: Props) {
             style={{
               fontSize: 11,
               padding: '4px 10px',
-              borderRadius: 4,
               border: '1px solid var(--border)',
               background: 'transparent',
               color: currentPage <= 1 ? 'var(--text-3)' : 'var(--text-2)',
@@ -208,7 +218,6 @@ export default function FundNewsPanel({ data, onTickerClick }: Props) {
                 fontSize: 11,
                 minWidth: 28,
                 padding: '4px 8px',
-                borderRadius: 4,
                 border: `1px solid ${p === currentPage ? 'var(--blue)' : 'var(--border)'}`,
                 background: p === currentPage ? 'rgba(56, 189, 248, 0.12)' : 'transparent',
                 color: p === currentPage ? 'var(--blue)' : 'var(--text-2)',
@@ -226,7 +235,6 @@ export default function FundNewsPanel({ data, onTickerClick }: Props) {
             style={{
               fontSize: 11,
               padding: '4px 10px',
-              borderRadius: 4,
               border: '1px solid var(--border)',
               background: 'transparent',
               color: currentPage >= totalPages ? 'var(--text-3)' : 'var(--text-2)',

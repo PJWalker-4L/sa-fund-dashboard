@@ -2,43 +2,42 @@ interface Props {
   label: string
   value: string
   sub?: string
-  accent?: boolean
   valueColor?: string
+  status?: string
+  statusWarn?: boolean
+  barPct?: number
+  barWarn?: boolean
+  accent?: boolean
 }
 
-export default function KPICard({ label, value, sub, accent, valueColor }: Props) {
+export default function KPICard({ label, value, sub, valueColor, status, statusWarn, barPct, barWarn }: Props) {
+  // Long company names / wide strings get smaller font
+  const valueSize = value.length > 10 ? 15 : value.length > 6 ? 20 : 24
+
   return (
-    <div style={{
-      background: 'var(--surface)',
-      border: '1px solid var(--border)',
-      borderRadius: 6,
-      padding: '13px 16px',
-      flex: '1 1 0',
-      minWidth: 130,
-    }}>
-      <div style={{
-        color: 'var(--text-2)',
-        fontSize: 10,
-        letterSpacing: '0.09em',
-        textTransform: 'uppercase',
-        marginBottom: 7,
-        fontWeight: 500,
-      }}>
-        {label}
+    <div className="kpi-row">
+      <div className="kpi-row-header">
+        <span className="kpi-row-label">{label}</span>
+        {status && (
+          <span className={`kpi-row-status${statusWarn ? ' warn' : ''}`}>{status}</span>
+        )}
       </div>
-      <div style={{
-        fontSize: 24,
-        fontWeight: 700,
-        color: valueColor ?? 'var(--text-1)',
-        fontFamily: 'var(--mono)',
-        letterSpacing: '-0.02em',
-        lineHeight: 1,
-      }}>
+      <div
+        className="kpi-row-value"
+        style={{
+          fontSize: valueSize,
+          ...(valueColor ? { color: valueColor } : {}),
+        }}
+      >
         {value}
       </div>
-      {sub && (
-        <div style={{ color: 'var(--text-2)', fontSize: 11, marginTop: 5 }}>
-          {sub}
+      {sub && <div className="kpi-row-sub">{sub}</div>}
+      {barPct !== undefined && (
+        <div className="kpi-bar">
+          <div
+            className={`kpi-bar-fill${barWarn ? ' warn' : ''}`}
+            style={{ width: `${Math.min(100, Math.max(0, barPct))}%` }}
+          />
         </div>
       )}
     </div>

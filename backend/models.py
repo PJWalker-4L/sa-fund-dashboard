@@ -173,3 +173,21 @@ class FundNewsResponse(BaseModel):
     sec_count: int
     holding_count: int
     keyword_count: int
+
+
+class HoldingsMapPoint(BaseModel):
+    ticker: str
+    name: str
+    value: float  # thousands of USD
+    putCall: Optional[str] = None
+    city: str
+    country: str
+    lat: float
+    lng: float
+    thesis_role: Optional[str] = None
+
+
+class HoldingsMapResponse(BaseModel):
+    points: list[HoldingsMapPoint]
+    unmapped: list[str]
+    period_of_report: str
