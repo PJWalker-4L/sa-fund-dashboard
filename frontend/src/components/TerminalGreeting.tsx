@@ -13,13 +13,22 @@ function getMessage(): string {
   return "Working late again, Mr. Aschenbrenner. Let's see what the filings say. If you need anything, let me know!"
 }
 
+const SESSION_KEY = 'se_greeted'
+
 export default function TerminalGreeting() {
+  const [active] = useState(() => {
+    if (sessionStorage.getItem(SESSION_KEY)) return false
+    sessionStorage.setItem(SESSION_KEY, '1')
+    return true
+  })
+
   const [text, setText] = useState('')
   const [done, setDone] = useState(false)
   const [visible, setVisible] = useState(true)
   const full = useRef(getMessage())
 
   useEffect(() => {
+    if (!active) return
     let i = 0
     const timer = setInterval(() => {
       i++
@@ -30,13 +39,15 @@ export default function TerminalGreeting() {
       }
     }, SPEED)
     return () => clearInterval(timer)
-  }, [])
+  }, [active])
 
   useEffect(() => {
     if (!done) return
     const t = setTimeout(() => setVisible(false), 3000)
     return () => clearTimeout(t)
   }, [done])
+
+  if (!active) return null
 
   return (
     <div style={{
