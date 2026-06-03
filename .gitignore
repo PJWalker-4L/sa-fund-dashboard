@@ -7,10 +7,16 @@ env/
 .env
 .env.local
 
+# Cursor / lokaler Agent-Kontext (nicht auf GitHub)
+.cursor/
+
 # Lokaler KI-Kontext (Nicht auf GitHub pushen)
 CLAUDE.md
 GLOBAL_RULES.md
 DECISIONS.md
+
+# Env-Vorlage (lokal behalten; Variablennamen stehen in README.md)
+.env.example
 
 # Interne Planungsdokumente
 possible_roadmap.md
