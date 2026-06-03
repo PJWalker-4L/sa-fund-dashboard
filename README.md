@@ -44,10 +44,10 @@ sa-fund-dashboard/
 This project was developed **with AI coding agents**, not only by hand:
 
 - **Cursor** (Composer / Agent mode) for implementation, refactors, and UI iterations
-- **Claude** for architecture notes, ADRs (`DECISIONS.md`), and product context (`CLAUDE.md`)
+- **Claude** for architecture notes and product guidance during development
 - Human direction on thesis layers, compliance framing, SEC parsing edge cases (e.g. Put/Call notional), and what *not* to ship
 
-The repo includes agent-oriented docs (`.cursor/rules/`, `CLAUDE.md`) because that is how it was built and maintained. All SEC data and LLM output should be treated as **delayed, incomplete, and non-advisory** — verify against primary sources.
+All SEC data and LLM output should be treated as **delayed, incomplete, and non-advisory** — verify against primary sources.
 
 ---
 
