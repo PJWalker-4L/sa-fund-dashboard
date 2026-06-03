@@ -6,7 +6,8 @@ from typing import Optional
 # Correct CIK for the 13F-HR filer (Situational Awareness LP, the investment adviser)
 # CIK 0002038540 is the LP entity — only holds Form D filings
 _CIK = "0002045724"
-_IDENTITY = "Sebastian Valmont sebastianvalmont28@gmail.com"
+# SEC Fair Access: identifiable contact without personal email (GitHub noreply)
+_IDENTITY = "Situational Edge PJWalker-4L@users.noreply.github.com"
 _FORM = "13F-HR"
 _NS = "http://www.sec.gov/edgar/document/thirteenf/informationtable"
 _NS_MAP = {"ns": _NS}

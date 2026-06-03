@@ -19,7 +19,10 @@ from models import FundNewsItem, FundNewsResponse
 _CACHE_FILE = Path(__file__).parent.parent / "data" / "fund_news_cache.json"
 _TTL = 12 * 3600
 _CIK_NUM = "2045724"
-_USER_AGENT = "SA-Fund-Dashboard/1.0 (research; contact: sebastianvalmont28@gmail.com)"
+_USER_AGENT = (
+    "SituationalEdge/1.0 (https://github.com/PJWalker-4L/sa-fund-dashboard; "
+    "contact: PJWalker-4L@users.noreply.github.com)"
+)
 
 _GOOGLE_RSS_URL = (
     "https://news.google.com/rss/search"
