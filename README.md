@@ -100,5 +100,3 @@ Situational Edge is an **analytical dashboard** for educational and research use
 ## Related docs
 
 - [`ABOUT.md`](ABOUT.md) — product narrative for external presentation
-- [`DECISIONS.md`](DECISIONS.md) — architecture decision records
-- [`possible_roadmap.md`](possible_roadmap.md) — planned features
