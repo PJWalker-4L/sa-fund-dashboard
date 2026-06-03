@@ -12,8 +12,21 @@ CLAUDE.md
 GLOBAL_RULES.md
 DECISIONS.md
 
+# Interne Planungsdokumente
+possible_roadmap.md
+
 # Lokale Dokumente (niemals auf GitHub)
 documents/
+
+# Debug- und Entwicklungs-Scripts
+backend/check_losers.py
+backend/check_movers.py
+backend/check_movers2.py
+backend/check_mu.py
+backend/check_stacked.py
+backend/debug_sort.py
+backend/regen_analysis.py
+backend/regen_strategy.py
 
 # Data (runtime-generated)
 data/snapshot.json
@@ -22,6 +35,8 @@ data/analysis_cache.json
 data/company_cache.json
 data/alpha_cache.json
 data/strategy_cache.json
+data/fund_news_cache.json
+data/history_cache.json
 data/win_ca_bundle.pem
 
 # Claude Code
