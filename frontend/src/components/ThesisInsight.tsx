@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { HoldingRow, StrategyResponse } from '../types'
-import LinkedTickerText from './LinkedTickerText'
+import FormattedMonoText from './FormattedMonoText'
 
 interface Props {
   holdings: HoldingRow[]
@@ -215,25 +215,19 @@ export default function ThesisInsight({ holdings, strategy, isLoading, onRefresh
                 </span>
               )}
             </div>
-            <div style={{
-              fontFamily: 'var(--mono)',
-              fontSize: 13,
-              color: 'var(--text-1)',
-              lineHeight: 1.8,
-              whiteSpace: 'pre-wrap',
-              minHeight: 28,
-            }}>
+            <div style={{ minHeight: 28 }}>
               {isLoading
-                ? <span className="pulse" style={{ color: 'var(--text-3)' }}>——</span>
+                ? <span className="pulse insight-line insight-line--muted">——</span>
                 : strategy?.commentary
                 ? (
-                  <LinkedTickerText
+                  <FormattedMonoText
                     text={strategy.commentary}
+                    variant="strategy"
                     tickerNames={tickerNames}
                     onTickerClick={onTickerClick}
                   />
                 )
-                : 'No strategy commentary available.'}
+                : <span className="insight-line insight-line--muted">No strategy commentary available.</span>}
             </div>
           </div>
         </div>

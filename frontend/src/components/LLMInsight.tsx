@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import type { AnalysisResponse } from '../types'
-import LinkedTickerText from './LinkedTickerText'
+import FormattedMonoText from './FormattedMonoText'
 
 interface Props {
   data: AnalysisResponse | undefined
@@ -8,136 +8,6 @@ interface Props {
   onRefresh: () => void
   tickerNames: Record<string, string>
   onTickerClick?: (ticker: string) => void
-}
-
-type InsightBlock =
-  | { kind: 'header'; text: string }
-  | { kind: 'separator'; text: string }
-  | { kind: 'section'; marker: string; title: string }
-  | { kind: 'stat'; text: string }
-  | { kind: 'bullet'; text: string }
-  | { kind: 'body'; text: string }
-  | { kind: 'spacer' }
-
-const SECTION_RE = /^([①②③④⑤])\s+(.+)$/
-const BULLET_RE = /^(?:[-•*·]|\d+\.)\s+/
-const STAT_RE = /^Shares:\s/
-
-function parseInsightBlocks(text: string): InsightBlock[] {
-  const blocks: InsightBlock[] = []
-  let sectionCount = 0
-
-  for (const rawLine of text.split('\n')) {
-    const line = rawLine.trimEnd()
-
-    if (line === '') {
-      blocks.push({ kind: 'spacer' })
-      continue
-    }
-
-    if (line.startsWith('◈ AI INSIGHT')) {
-      blocks.push({ kind: 'header', text: line })
-      continue
-    }
-
-    if (/^─+$/.test(line.trim())) {
-      blocks.push({ kind: 'separator', text: line.trim() })
-      continue
-    }
-
-    const section = line.match(SECTION_RE)
-    if (section) {
-      sectionCount += 1
-      blocks.push({ kind: 'section', marker: section[1], title: section[2] })
-      continue
-    }
-
-    if (STAT_RE.test(line)) {
-      blocks.push({ kind: 'stat', text: line })
-      continue
-    }
-
-    const bullet = line.match(BULLET_RE)
-    if (bullet && sectionCount >= 4) {
-      blocks.push({ kind: 'bullet', text: line.replace(BULLET_RE, '') })
-      continue
-    }
-
-    blocks.push({ kind: 'body', text: line })
-  }
-
-  return blocks
-}
-
-function InsightBody({
-  text,
-  tickerNames,
-  onTickerClick,
-}: {
-  text: string
-  tickerNames: Record<string, string>
-  onTickerClick?: (ticker: string) => void
-}) {
-  const blocks = useMemo(() => parseInsightBlocks(text), [text])
-  let sectionIndex = 0
-
-  return (
-    <div className="insight-text">
-      {blocks.map((block, i) => {
-        switch (block.kind) {
-          case 'header':
-            return (
-              <div key={i} className="insight-line insight-line--header">
-                {block.text}
-              </div>
-            )
-          case 'separator':
-            return (
-              <div key={i} className="insight-line insight-line--separator" aria-hidden="true">
-                {block.text}
-              </div>
-            )
-          case 'section': {
-            sectionIndex += 1
-            return (
-              <div
-                key={i}
-                className={`insight-line insight-line--section${sectionIndex > 1 ? ' insight-line--section-gap' : ''}`}
-              >
-                <span className="insight-section-marker">{block.marker}</span>
-                <span>{block.title}</span>
-              </div>
-            )
-          }
-          case 'stat':
-            return (
-              <div key={i} className="insight-line insight-line--stat">
-                <LinkedTickerText text={block.text} tickerNames={tickerNames} onTickerClick={onTickerClick} />
-              </div>
-            )
-          case 'bullet':
-            return (
-              <div key={i} className="insight-line insight-line--bullet">
-                <span className="insight-bullet-marker" aria-hidden="true">·</span>
-                <span>
-                  <LinkedTickerText text={block.text} tickerNames={tickerNames} onTickerClick={onTickerClick} />
-                </span>
-              </div>
-            )
-          case 'spacer':
-            return <div key={i} className="insight-spacer" aria-hidden="true" />
-          case 'body':
-            return (
-              <div key={i} className="insight-line insight-line--body">
-                <LinkedTickerText text={block.text} tickerNames={tickerNames} onTickerClick={onTickerClick} />
-              </div>
-            )
-          default:
-            return null
-        }
-      })}
-    </div>
-  )
 }
 
 export default function LLMInsight({ data, isLoading, onRefresh, tickerNames, onTickerClick }: Props) {
@@ -207,8 +77,9 @@ export default function LLMInsight({ data, isLoading, onRefresh, tickerNames, on
             ? <span className="pulse insight-line insight-line--muted">——</span>
             : data?.analysis
             ? (
-              <InsightBody
+              <FormattedMonoText
                 text={data.analysis}
+                variant="insight"
                 tickerNames={tickerNames}
                 onTickerClick={onTickerClick}
               />
