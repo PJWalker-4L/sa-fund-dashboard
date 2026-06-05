@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Sector } from 'recharts'
+import type { PieSectorDataItem } from 'recharts/types/polar/Pie'
 import type { BucketAllocation, HoldingRow } from '../types'
 
 interface Props {
@@ -12,8 +13,31 @@ interface Props {
 }
 
 type Mode = 'buckets' | 'positions'
+type ChartSlice = {
+  name: string
+  value: number
+  pct: number
+  fill: string
+  fullName?: string
+  ticker?: string | null
+  holding?: HoldingRow | null
+}
 
-const COLORS = ['#38bdf8', '#f97316', '#22c55e', '#fbbf24', '#a78bfa', '#2dd4bf', '#f472b6', '#94a3b8', '#fb7185', '#34d399', '#818cf8', '#facc15']
+const PIE_SIZE = 200
+const SURFACE_STROKE = '#030c1a'
+
+/** Theme-aligned palette (matches global.css tokens) */
+const COLORS = [
+  '#00c8e0', // --teal
+  '#3ab0ff', // --blue
+  '#f97316', // --orange
+  '#f5c030', // --yellow
+  '#9b72ff', // --purple
+  '#1cd47c', // --green
+  '#f04444', // --red
+  '#5580a8', // --text-2
+  '#172e4e', // --border-hi
+]
 
 function fmtVal(v: number): string {
   if (v >= 1_000_000) return `$${(v / 1_000_000).toFixed(2)}B`
@@ -27,7 +51,7 @@ function instrumentLabel(putCall: string | null | undefined): string {
   return 'SHARE'
 }
 
-function buildBucketData(buckets: BucketAllocation[], topN: number) {
+function buildBucketData(buckets: BucketAllocation[], topN: number): ChartSlice[] {
   return buckets.slice(0, topN).map((b, i) => ({
     name: b.label,
     value: b.value_thousands,
@@ -36,15 +60,13 @@ function buildBucketData(buckets: BucketAllocation[], topN: number) {
   }))
 }
 
-function buildPositionData(holdings: HoldingRow[], topN: number) {
+function buildPositionData(holdings: HoldingRow[], topN: number): ChartSlice[] {
   const sorted = [...holdings].sort((a, b) => b.value - a.value)
   const total = sorted.reduce((s, h) => s + h.value, 0)
   const top = sorted.slice(0, topN)
   const otherValue = sorted.slice(topN).reduce((s, h) => s + h.value, 0)
 
-  const data: Array<{
-    name: string; fullName: string; value: number; pct: number; fill: string; ticker: string | null; holding: HoldingRow | null
-  }> = top.map((h, i) => ({
+  const data: ChartSlice[] = top.map((h, i) => ({
     name: h.ticker ?? h.nameOfIssuer.split(' ')[0],
     fullName: h.nameOfIssuer,
     value: h.value,
@@ -60,7 +82,7 @@ function buildPositionData(holdings: HoldingRow[], topN: number) {
       fullName: `${sorted.length - topN} other positions`,
       value: otherValue,
       pct: total > 0 ? Math.round((otherValue / total) * 1000) / 10 : 0,
-      fill: '#374151',
+      fill: COLORS[8],
       ticker: null,
       holding: null,
     })
@@ -74,6 +96,38 @@ function bucketColor(bucketName: string, buckets: BucketAllocation[]): string {
   return COLORS[(idx >= 0 ? idx : 0) % COLORS.length]
 }
 
+function renderActiveShape(props: PieSectorDataItem) {
+  const {
+    cx = 0,
+    cy = 0,
+    innerRadius = 0,
+    outerRadius = 0,
+    startAngle = 0,
+    endAngle = 0,
+    fill = COLORS[0],
+    fillOpacity = 1,
+    stroke,
+    strokeWidth = 0,
+  } = props
+
+  return (
+    <Sector
+      cx={cx}
+      cy={cy}
+      innerRadius={innerRadius}
+      outerRadius={Number(outerRadius) + 5}
+      startAngle={startAngle}
+      endAngle={endAngle}
+      fill={fill}
+      fillOpacity={fillOpacity}
+      stroke={stroke ?? '#00c8e0'}
+      strokeWidth={Number(strokeWidth) || 1.5}
+      cornerRadius={3}
+      style={{ filter: 'url(#bucket-slice-glow)' }}
+    />
+  )
+}
+
 export default function BucketChart({
   buckets,
   holdings,
@@ -83,10 +137,16 @@ export default function BucketChart({
   onBucketSelect,
 }: Props) {
   const [mode, setMode] = useState<Mode>('buckets')
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null)
 
   const bucketData = useMemo(() => buildBucketData(buckets, topN), [buckets, topN])
   const positionData = useMemo(() => buildPositionData(holdings, topN), [holdings, topN])
   const data = mode === 'buckets' ? bucketData : positionData
+
+  const bucketTotal = useMemo(
+    () => buckets.reduce((a, b) => a + b.value_thousands, 0),
+    [buckets],
+  )
 
   const drillHoldings = useMemo(() => {
     if (!selectedBucket || mode !== 'buckets') return []
@@ -98,6 +158,24 @@ export default function BucketChart({
   const drillTotal = drillHoldings.reduce((s, h) => s + h.value, 0)
   const sectorFill = selectedBucket ? bucketColor(selectedBucket, buckets) : null
 
+  const selectedSlice = selectedBucket
+    ? bucketData.find(d => d.name === selectedBucket)
+    : null
+
+  const centerPrimary = mode === 'buckets'
+    ? selectedBucket
+      ? selectedBucket
+      : fmtVal(bucketTotal)
+    : data[0]?.name ?? '—'
+
+  const centerSecondary = mode === 'buckets'
+    ? selectedBucket
+      ? `${selectedSlice?.pct ?? 0}% of portfolio`
+      : `${bucketData.length} sectors`
+    : data[0]
+      ? `${data[0].pct}% · top holding`
+      : `${holdings.length} positions`
+
   useEffect(() => {
     if (!selectedBucket) return
     const onKey = (e: KeyboardEvent) => {
@@ -106,6 +184,10 @@ export default function BucketChart({
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [selectedBucket, onBucketSelect])
+
+  useEffect(() => {
+    setHoverIndex(null)
+  }, [mode, selectedBucket, data.length])
 
   function handleModeChange(next: Mode) {
     setMode(next)
@@ -116,7 +198,7 @@ export default function BucketChart({
     onBucketSelect?.(selectedBucket === name ? null : name)
   }
 
-  function handlePieClick(entry: { name?: string; ticker?: string | null; holding?: HoldingRow | null }) {
+  function handlePieClick(entry: ChartSlice) {
     if (mode === 'buckets' && entry?.name) {
       toggleBucket(entry.name)
       return
@@ -129,12 +211,18 @@ export default function BucketChart({
   const totalLabel = mode === 'buckets'
     ? selectedBucket
       ? `${drillHoldings.length} positions · ${fmtVal(drillTotal)}`
-      : `${data.length} sectors · ${fmtVal(buckets.reduce((a, b) => a + b.value_thousands, 0))}`
+      : `${data.length} sectors · ${fmtVal(bucketTotal)}`
     : `top ${Math.min(holdings.length, topN)} of ${holdings.length} positions`
 
   const pieCursor = (mode === 'buckets' && onBucketSelect) || (mode === 'positions' && onPositionClick)
     ? 'pointer'
     : 'default'
+
+  function sliceState(name: string) {
+    const dimmed = mode === 'buckets' && Boolean(selectedBucket) && name !== selectedBucket
+    const active = mode === 'buckets' && selectedBucket === name
+    return { dimmed, active }
+  }
 
   return (
     <div style={{
@@ -220,34 +308,54 @@ export default function BucketChart({
       </div>
 
       <div className="bucket-chart-layout">
-        <div className="bucket-pie" style={{ flex: '0 0 180px' }}>
-          <ResponsiveContainer width={180} height={180}>
+        <div className="bucket-pie nexus-surface">
+          <div className="bucket-pie-center" aria-hidden="true">
+            <span className="bucket-pie-center-primary">{centerPrimary}</span>
+            <span className="bucket-pie-center-secondary">{centerSecondary}</span>
+          </div>
+          <ResponsiveContainer width={PIE_SIZE} height={PIE_SIZE}>
             <PieChart>
+              <defs>
+                <filter id="bucket-slice-glow" x="-25%" y="-25%" width="150%" height="150%">
+                  <feGaussianBlur stdDeviation="2.5" result="blur" />
+                  <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
               <Pie
                 data={data}
                 cx="50%"
                 cy="50%"
-                innerRadius={52}
-                outerRadius={78}
-                paddingAngle={2}
+                innerRadius={64}
+                outerRadius={90}
+                paddingAngle={1}
+                cornerRadius={3}
                 dataKey="value"
-                strokeWidth={0}
+                stroke={SURFACE_STROKE}
+                strokeWidth={2}
                 style={{ cursor: pieCursor }}
+                activeIndex={hoverIndex ?? undefined}
+                activeShape={renderActiveShape}
+                onMouseEnter={(_, index) => setHoverIndex(index)}
+                onMouseLeave={() => setHoverIndex(null)}
                 onClick={(_, index) => {
                   const entry = data[index]
-                  if (entry) handlePieClick(entry as { name: string; ticker?: string | null; holding?: HoldingRow | null })
+                  if (entry) handlePieClick(entry)
                 }}
+                animationDuration={500}
+                isAnimationActive
               >
                 {data.map((d, i) => {
-                  const dimmed = mode === 'buckets' && selectedBucket && d.name !== selectedBucket
-                  const active = mode === 'buckets' && selectedBucket === d.name
+                  const { dimmed, active } = sliceState(d.name)
                   return (
                     <Cell
                       key={i}
                       fill={d.fill}
                       fillOpacity={dimmed ? 0.28 : 1}
-                      stroke={active ? 'var(--teal)' : 'transparent'}
-                      strokeWidth={active ? 1.5 : 0}
+                      stroke={active ? '#00c8e0' : SURFACE_STROKE}
+                      strokeWidth={active ? 2 : 2}
                     />
                   )
                 })}
@@ -256,12 +364,13 @@ export default function BucketChart({
                 formatter={(val: number) => [fmtVal(val), 'Value']}
                 labelFormatter={(label) => {
                   const item = data.find(d => d.name === label)
-                  return item && 'fullName' in item ? item.fullName : label
+                  const name = item?.fullName ?? label
+                  return item?.pct != null ? `${name} · ${item.pct}%` : name
                 }}
                 contentStyle={{
                   background: 'var(--surface-hi)',
                   border: '1px solid var(--border)',
-                  fontSize: 11,
+                  fontSize: 13,
                   color: 'var(--text-1)',
                 }}
                 itemStyle={{ color: 'var(--text-1)' }}
@@ -320,32 +429,38 @@ export default function BucketChart({
                 <span>Value</span>
                 <span>%</span>
               </div>
-              {data.map((d) => {
-                const pd = d as { name: string; ticker?: string | null; holding?: HoldingRow | null }
-                const clickable = mode === 'positions' && onPositionClick && pd.ticker && pd.holding
+              {data.map((d, index) => {
+                const clickable = mode === 'positions' && onPositionClick && d.ticker && d.holding
                 const bucketClickable = mode === 'buckets' && onBucketSelect
-                const active = mode === 'buckets' && selectedBucket === d.name
+                const { active } = sliceState(d.name)
+                const hovered = hoverIndex === index
                 return (
                   <div
                     key={d.name}
-                    className={`bucket-legend-row${active ? ' bucket-legend-row--active' : ''}`}
+                    className={[
+                      'bucket-legend-row',
+                      active ? 'bucket-legend-row--active' : '',
+                      hovered ? 'bucket-legend-row--hover' : '',
+                    ].filter(Boolean).join(' ')}
                     role={clickable || bucketClickable ? 'button' : undefined}
                     tabIndex={clickable || bucketClickable ? 0 : undefined}
+                    onMouseEnter={() => setHoverIndex(index)}
+                    onMouseLeave={() => setHoverIndex(null)}
                     onClick={() => {
                       if (bucketClickable && mode === 'buckets') toggleBucket(d.name)
-                      else if (clickable) onPositionClick!(pd.ticker!, pd.holding!)
+                      else if (clickable) onPositionClick!(d.ticker!, d.holding!)
                     }}
                     onKeyDown={e => {
                       if (e.key !== 'Enter') return
                       if (bucketClickable && mode === 'buckets') toggleBucket(d.name)
-                      else if (clickable) onPositionClick!(pd.ticker!, pd.holding!)
+                      else if (clickable) onPositionClick!(d.ticker!, d.holding!)
                     }}
                     style={{ cursor: clickable || bucketClickable ? 'pointer' : 'default' }}
                   >
                     <span className="bucket-legend-swatch" style={{ background: d.fill }} />
                     <span
                       className={`bucket-legend-label${mode === 'positions' ? ' bucket-legend-label--mono' : ''}`}
-                      title={'fullName' in d ? String(d.fullName) : d.name}
+                      title={d.fullName ?? d.name}
                     >
                       {d.name}
                     </span>
