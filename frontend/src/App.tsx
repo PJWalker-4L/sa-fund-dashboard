@@ -20,6 +20,7 @@ import FundNewsPanel from './components/FundNewsPanel'
 import HoldingsMap from './components/HoldingsMap'
 import TerminalGreeting from './components/TerminalGreeting'
 import AboutPage from './components/AboutPage'
+import AIInsightSummary from './components/AIInsightSummary'
 import AboutHintBanner, {
   dismissAboutHintSession,
   isAboutHintDismissed,
@@ -422,7 +423,7 @@ export default function App() {
                     </button>
                   </div>
                 </div>
-                <div style={{ padding: centerView === 'map' ? 0 : 12, flex: 1, minHeight: 0 }}>
+                <div style={{ padding: centerView === 'map' ? 0 : 12, flexShrink: 0 }}>
                   {centerView === 'map' ? (
                     <div style={{ position: 'relative' }}>
                       <HoldingsMap
@@ -438,6 +439,13 @@ export default function App() {
                     timelineBlock
                   )}
                 </div>
+                <AIInsightSummary
+                  data={analysis.data}
+                  isLoading={analysis.isLoading || refreshAnalysis.isPending}
+                  tickerNames={tickerNames}
+                  onTickerClick={handleTickerClick}
+                  onViewFull={() => handleTabChange('indicators')}
+                />
               </div>
 
               {/* ── RIGHT: Signals ── */}
