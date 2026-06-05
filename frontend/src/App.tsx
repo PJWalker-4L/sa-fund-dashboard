@@ -14,7 +14,7 @@ import ThesisInsight from './components/ThesisInsight'
 import DeltaBadge from './components/DeltaBadge'
 import HoldingsTable from './components/HoldingsTable'
 import CompanyDrawer from './components/CompanyDrawer'
-import ChatPanel from './components/ChatPanel'
+import ChatPanel, { DEFAULT_CHAT_MODEL } from './components/ChatPanel'
 import TimelineChart from './components/TimelineChart'
 import FundNewsPanel from './components/FundNewsPanel'
 import HoldingsMap from './components/HoldingsMap'
@@ -26,7 +26,7 @@ import AboutHintBanner, {
   isAboutHintDismissed,
 } from './components/AboutHintBanner'
 import { buildTickerNameMap } from './components/LinkedTickerText'
-import type { HoldingRow } from './types'
+import type { ChatMessage, HoldingRow } from './types'
 
 const THESIS_LAYERS = ['Power', 'Silicon', 'GPU Cloud', 'AI Infrastructure', 'Optical', 'Storage'] as const
 
@@ -55,6 +55,10 @@ export default function App() {
   const [selectedHolding, setSelectedHolding] = useState<HoldingRow | null>(null)
   const [bannerDismissed, setBannerDismissed] = useState<string | null>(null)
   const [chatOpen, setChatOpen] = useState(false)
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
+  const [chatInput, setChatInput] = useState('')
+  const [chatModel, setChatModel] = useState<string>(DEFAULT_CHAT_MODEL)
+  const [chatLoading, setChatLoading] = useState(false)
   const [activeTab, setActiveTab] = useState<DashboardTab>('portfolio')
   const [centerView, setCenterView] = useState<'map' | 'timeline'>('map')
   const [aboutHintVisible, setAboutHintVisible] = useState(() => !isAboutHintDismissed())
@@ -319,7 +323,19 @@ export default function App() {
       )}
 
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        {chatOpen && <ChatPanel onClose={() => setChatOpen(false)} />}
+        {chatOpen && (
+          <ChatPanel
+            onClose={() => setChatOpen(false)}
+            messages={chatMessages}
+            setMessages={setChatMessages}
+            input={chatInput}
+            setInput={setChatInput}
+            model={chatModel}
+            setModel={setChatModel}
+            isLoading={chatLoading}
+            setIsLoading={setChatLoading}
+          />
+        )}
 
         <main style={{ flex: 1, overflowY: 'auto', minWidth: 0 }}>
           {activeTab === 'portfolio' && (

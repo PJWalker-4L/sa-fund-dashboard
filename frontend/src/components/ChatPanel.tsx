@@ -1,13 +1,13 @@
-import { useState, useRef, useEffect } from 'react'
+import { useRef, useEffect, type Dispatch, type SetStateAction } from 'react'
 import { sendChatMessage } from '../api'
 import type { ChatMessage } from '../types'
 
 const MODELS = [
   { value: 'groq/llama-3.1-8b-instant',    label: 'Groq · Llama 8B (fast)' },
   { value: 'groq/llama-3.3-70b-versatile', label: 'Groq · Llama 70B (strong)' },
-  { value: 'anthropic/claude-haiku-4-5-20251001', label: 'Anthropic · Haiku (economical)' },
-  { value: 'anthropic/claude-sonnet-4-6',  label: 'Anthropic · Sonnet (strong)' },
-]
+] as const
+
+export const DEFAULT_CHAT_MODEL = MODELS[1].value
 
 const SUGGESTIONS = [
   'Which power positions were built up this quarter?',
@@ -17,13 +17,27 @@ const SUGGESTIONS = [
 
 interface Props {
   onClose: () => void
+  messages: ChatMessage[]
+  setMessages: Dispatch<SetStateAction<ChatMessage[]>>
+  input: string
+  setInput: Dispatch<SetStateAction<string>>
+  model: string
+  setModel: Dispatch<SetStateAction<string>>
+  isLoading: boolean
+  setIsLoading: Dispatch<SetStateAction<boolean>>
 }
 
-export default function ChatPanel({ onClose }: Props) {
-  const [messages, setMessages] = useState<ChatMessage[]>([])
-  const [input, setInput] = useState('')
-  const [model, setModel] = useState(MODELS[1].value)
-  const [isLoading, setIsLoading] = useState(false)
+export default function ChatPanel({
+  onClose,
+  messages,
+  setMessages,
+  input,
+  setInput,
+  model,
+  setModel,
+  isLoading,
+  setIsLoading,
+}: Props) {
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
