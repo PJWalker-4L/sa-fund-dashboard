@@ -59,7 +59,14 @@ def _get_data():
     cached = state_manager.load_holdings_cache()
     if cached:
         return cached
-    return _fetch_live()
+    try:
+        return _fetch_live()
+    except Exception:
+        stale = state_manager.load_holdings_cache(allow_stale=True)
+        if stale:
+            print("[WARN] SEC fetch failed; serving stale holdings cache", flush=True)
+            return stale
+        raise
 
 
 def _build_holdings_response(
@@ -308,6 +315,10 @@ async def get_history():
     try:
         result = history_builder.build_history()
     except Exception as e:
+        stale = state_manager.load_history_cache(allow_stale=True)
+        if stale:
+            print("[WARN] History build failed; serving stale history cache", flush=True)
+            return HistoryResponse(**stale)
         raise _http_503("History build failed", e)
     state_manager.save_history_cache(result.model_dump())
     return result

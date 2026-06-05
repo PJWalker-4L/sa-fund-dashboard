@@ -76,11 +76,13 @@ def save_holdings_cache(
 
 def load_holdings_cache(
     ttl: int = CACHE_TTL,
+    *,
+    allow_stale: bool = False,
 ) -> Optional[tuple[pd.DataFrame, dict, Optional[pd.DataFrame], Optional[dict]]]:
     if not _HOLDINGS_CACHE.exists():
         return None
     payload = json.loads(_HOLDINGS_CACHE.read_text(encoding="utf-8"))
-    if time.time() - payload.get("ts", 0) > ttl:
+    if not allow_stale and time.time() - payload.get("ts", 0) > ttl:
         return None
     prev_df = pd.DataFrame(payload["prev_holdings"]) if payload.get("prev_holdings") else None
     curr_df = _clean_put_call(pd.DataFrame(payload["current_holdings"]))
@@ -155,11 +157,15 @@ def save_history_cache(data: dict) -> None:
     )
 
 
-def load_history_cache(ttl: int = CACHE_TTL) -> Optional[dict]:
+def load_history_cache(
+    ttl: int = CACHE_TTL,
+    *,
+    allow_stale: bool = False,
+) -> Optional[dict]:
     if not _HISTORY_CACHE.exists():
         return None
     payload = json.loads(_HISTORY_CACHE.read_text(encoding="utf-8"))
-    if time.time() - payload.get("ts", 0) > ttl:
+    if not allow_stale and time.time() - payload.get("ts", 0) > ttl:
         return None
     return payload.get("data")
 

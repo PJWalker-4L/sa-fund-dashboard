@@ -108,6 +108,8 @@ export default function App() {
     queryKey: ['fund-news'],
     queryFn: fetchFundNews,
     staleTime: 12 * 3600_000,
+    refetchInterval: 12 * 3600_000,
+    refetchOnWindowFocus: true,
     enabled: !!data,
   })
   const holdingsMap = useQuery({

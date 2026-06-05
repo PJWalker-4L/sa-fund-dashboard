@@ -1,13 +1,20 @@
+import os
 import xml.etree.ElementTree as ET
+from pathlib import Path
 
 import pandas as pd
+from dotenv import load_dotenv
 from typing import Optional
+
+load_dotenv(Path(__file__).parent.parent / ".env.local")
+load_dotenv(Path(__file__).parent.parent / ".env")
 
 # Correct CIK for the 13F-HR filer (Situational Awareness LP, the investment adviser)
 # CIK 0002038540 is the LP entity — only holds Form D filings
 _CIK = "0002045724"
-# SEC Fair Access: identifiable contact without personal email (GitHub noreply)
-_IDENTITY = "Situational Edge PJWalker-4L@users.noreply.github.com"
+# SEC Fair Access: SEC blocks *@github.com / *@users.noreply.github.com — override via SEC_IDENTITY
+_DEFAULT_IDENTITY = "Situational Edge noreply@situational-edge.app"
+_IDENTITY = os.getenv("SEC_IDENTITY", _DEFAULT_IDENTITY).strip() or _DEFAULT_IDENTITY
 _FORM = "13F-HR"
 _NS = "http://www.sec.gov/edgar/document/thirteenf/informationtable"
 _NS_MAP = {"ns": _NS}
