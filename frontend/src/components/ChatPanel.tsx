@@ -3,16 +3,16 @@ import { sendChatMessage } from '../api'
 import type { ChatMessage } from '../types'
 
 const MODELS = [
-  { value: 'groq/llama-3.1-8b-instant',    label: 'Groq · Llama 8B (schnell)' },
-  { value: 'groq/llama-3.3-70b-versatile', label: 'Groq · Llama 70B (stark)' },
-  { value: 'anthropic/claude-haiku-4-5-20251001', label: 'Anthropic · Haiku (günstig)' },
-  { value: 'anthropic/claude-sonnet-4-6',  label: 'Anthropic · Sonnet (stark)' },
+  { value: 'groq/llama-3.1-8b-instant',    label: 'Groq · Llama 8B (fast)' },
+  { value: 'groq/llama-3.3-70b-versatile', label: 'Groq · Llama 70B (strong)' },
+  { value: 'anthropic/claude-haiku-4-5-20251001', label: 'Anthropic · Haiku (economical)' },
+  { value: 'anthropic/claude-sonnet-4-6',  label: 'Anthropic · Sonnet (strong)' },
 ]
 
 const SUGGESTIONS = [
-  'Welche Power-Positionen wurden dieses Quartal aufgebaut?',
-  'Warum hält SA Intel statt Nvidia?',
-  'Wie hoch ist das Exposure im AI Infrastructure Layer?',
+  'Which power positions were built up this quarter?',
+  'Why does SA hold Intel instead of Nvidia?',
+  'How high is exposure in the AI Infrastructure layer?',
 ]
 
 interface Props {
@@ -46,7 +46,7 @@ export default function ChatPanel({ onClose }: Props) {
       const data = await sendChatMessage(content, history, model)
       setMessages([...nextMessages, { role: 'assistant', content: data.response }])
     } catch (e) {
-      setMessages([...nextMessages, { role: 'assistant', content: `Fehler: ${String(e)}` }])
+      setMessages([...nextMessages, { role: 'assistant', content: `Error: ${String(e)}` }])
     } finally {
       setIsLoading(false)
     }
@@ -108,7 +108,7 @@ export default function ChatPanel({ onClose }: Props) {
         {messages.length === 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
             <div style={{ color: 'var(--text-3)', fontSize: 11, textAlign: 'center', marginBottom: 4 }}>
-              Frag das Portfolio — z.B.:
+              Ask the portfolio — e.g.:
             </div>
             {SUGGESTIONS.map(s => (
               <button
@@ -157,7 +157,7 @@ export default function ChatPanel({ onClose }: Props) {
               color: 'var(--text-3)',
             }}
           >
-            Analysiert…
+            Analyzing…
           </div>
         )}
         <div ref={bottomRef} />
@@ -171,7 +171,7 @@ export default function ChatPanel({ onClose }: Props) {
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }}
-            placeholder="Frage zum Portfolio…"
+            placeholder="Ask about the portfolio…"
             disabled={isLoading}
             style={{
               flex: 1, fontSize: 12,
