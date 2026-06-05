@@ -51,6 +51,7 @@ function PanelShell({ label, children, flush }: { label: string; children: React
 
 export default function App() {
   const [statusFilter, setStatusFilter] = useState<string | null>(null)
+  const [bucketFilter, setBucketFilter] = useState<string | null>(null)
   const [selectedTicker, setSelectedTicker] = useState<string | null>(null)
   const [selectedHolding, setSelectedHolding] = useState<HoldingRow | null>(null)
   const [bannerDismissed, setBannerDismissed] = useState<string | null>(null)
@@ -484,7 +485,13 @@ export default function App() {
           {activeTab === 'indicators' && (
             <div className="page-content">
               {timelineBlock}
-              <BucketChart buckets={data!.buckets} holdings={data!.holdings} onPositionClick={openDrawer} />
+              <BucketChart
+                buckets={data!.buckets}
+                holdings={data!.holdings}
+                onPositionClick={openDrawer}
+                selectedBucket={bucketFilter}
+                onBucketSelect={setBucketFilter}
+              />
               <div className="kpi-grid">{kpiStrip}</div>
               <LLMInsight
                 data={analysis.data}
@@ -510,10 +517,39 @@ export default function App() {
                   alignItems: 'center',
                 }}>
                   <span style={{ fontSize: 11, color: 'var(--text-3)' }}>
-                    {statusFilter
-                      ? `${data!.holdings.filter(h => h.status === statusFilter).length} shown`
-                      : `${data!.holdings.length} positions`}
+                    {(() => {
+                      const filtered = data!.holdings.filter(h => {
+                        if (statusFilter && h.status !== statusFilter) return false
+                        if (bucketFilter && (h.bucket ?? 'Other') !== bucketFilter) return false
+                        return true
+                      })
+                      if (statusFilter || bucketFilter) {
+                        const parts: string[] = [`${filtered.length} shown`]
+                        if (bucketFilter) parts.push(bucketFilter)
+                        return parts.join(' · ')
+                      }
+                      return `${data!.holdings.length} positions`
+                    })()}
                   </span>
+                  {bucketFilter && (
+                    <button
+                      type="button"
+                      onClick={() => setBucketFilter(null)}
+                      style={{
+                        fontSize: 9,
+                        padding: '2px 8px',
+                        border: '1px solid var(--teal)',
+                        background: 'rgba(0,200,224,0.08)',
+                        color: 'var(--teal)',
+                        cursor: 'pointer',
+                        fontWeight: 700,
+                        letterSpacing: '0.06em',
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      Clear sector
+                    </button>
+                  )}
                   <DeltaBadge
                     newCount={data!.delta.new_count}
                     closedCount={data!.delta.closed_count}
@@ -523,7 +559,12 @@ export default function App() {
                     onFilter={setStatusFilter}
                   />
                 </div>
-                <HoldingsTable holdings={data!.holdings} statusFilter={statusFilter} onTickerClick={handleTickerClick} />
+                <HoldingsTable
+                  holdings={data!.holdings}
+                  statusFilter={statusFilter}
+                  bucketFilter={bucketFilter}
+                  onTickerClick={handleTickerClick}
+                />
               </PanelShell>
             </div>
           )}

@@ -4,6 +4,7 @@ import type { HoldingRow } from '../types'
 interface Props {
   holdings: HoldingRow[]
   statusFilter: string | null
+  bucketFilter?: string | null
   onTickerClick?: (ticker: string) => void
 }
 
@@ -41,7 +42,7 @@ function PctCell({ h }: { h: HoldingRow }) {
   )
 }
 
-export default function HoldingsTable({ holdings, statusFilter, onTickerClick }: Props) {
+export default function HoldingsTable({ holdings, statusFilter, bucketFilter = null, onTickerClick }: Props) {
   const totalAum = useMemo(() => holdings.reduce((s, h) => s + h.value, 0), [holdings])
   const [sortKey, setSortKey] = useState<SortKey>('value')
   const [sortDir, setSortDir] = useState<1 | -1>(-1)
@@ -52,16 +53,18 @@ export default function HoldingsTable({ holdings, statusFilter, onTickerClick }:
   }
 
   const rows = useMemo(() => {
-    const filtered = statusFilter
-      ? holdings.filter(h => h.status === statusFilter)
-      : holdings
+    const filtered = holdings.filter(h => {
+      if (statusFilter && h.status !== statusFilter) return false
+      if (bucketFilter && (h.bucket ?? 'Other') !== bucketFilter) return false
+      return true
+    })
     return [...filtered].sort((a, b) => {
       const av = a[sortKey] ?? 0
       const bv = b[sortKey] ?? 0
       if (typeof av === 'string') return sortDir * (av as string).localeCompare(bv as string)
       return sortDir * ((av as number) - (bv as number))
     })
-  }, [holdings, statusFilter, sortKey, sortDir])
+  }, [holdings, statusFilter, bucketFilter, sortKey, sortDir])
 
   function Th({ k, label, align = 'left' }: { k: SortKey; label: string; align?: string }) {
     return (
