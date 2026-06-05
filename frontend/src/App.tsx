@@ -20,6 +20,10 @@ import FundNewsPanel from './components/FundNewsPanel'
 import HoldingsMap from './components/HoldingsMap'
 import TerminalGreeting from './components/TerminalGreeting'
 import AboutPage from './components/AboutPage'
+import AboutHintBanner, {
+  dismissAboutHintSession,
+  isAboutHintDismissed,
+} from './components/AboutHintBanner'
 import { buildTickerNameMap } from './components/LinkedTickerText'
 import type { HoldingRow } from './types'
 
@@ -52,7 +56,18 @@ export default function App() {
   const [chatOpen, setChatOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<DashboardTab>('portfolio')
   const [centerView, setCenterView] = useState<'map' | 'timeline'>('map')
+  const [aboutHintVisible, setAboutHintVisible] = useState(() => !isAboutHintDismissed())
   const qc = useQueryClient()
+
+  function dismissAboutHint() {
+    dismissAboutHintSession()
+    setAboutHintVisible(false)
+  }
+
+  function handleTabChange(tab: DashboardTab) {
+    setActiveTab(tab)
+    if (tab === 'about') dismissAboutHint()
+  }
 
   function openDrawer(ticker: string, holding: HoldingRow) {
     setSelectedTicker(ticker)
@@ -239,12 +254,20 @@ export default function App() {
         meta={data!.meta}
         prevMeta={data!.prev_meta}
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
         onRefresh={() => refresh.mutate()}
         isRefreshing={refresh.isPending}
         chatOpen={chatOpen}
         onChatToggle={() => setChatOpen(o => !o)}
+        highlightAboutTab={aboutHintVisible}
       />
+
+      {aboutHintVisible && activeTab === 'portfolio' && (
+        <AboutHintBanner
+          onDismiss={dismissAboutHint}
+          onOpenAbout={() => handleTabChange('about')}
+        />
+      )}
 
       {filingCheck.data?.has_new && bannerDismissed !== filingCheck.data.latest_accession && (
         <div className="filing-banner" style={{

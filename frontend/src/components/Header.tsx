@@ -1,3 +1,4 @@
+import { formatPeriodRange, formatPeriodWithQuarter } from '../lib/filing-period'
 import type { FilingMeta } from '../types'
 
 export type DashboardTab = 'portfolio' | 'indicators' | 'about'
@@ -11,6 +12,7 @@ interface Props {
   isRefreshing: boolean
   chatOpen: boolean
   onChatToggle: () => void
+  highlightAboutTab?: boolean
 }
 
 const TABS: { id: DashboardTab; label: string }[] = [
@@ -28,10 +30,11 @@ export default function Header({
   isRefreshing,
   chatOpen,
   onChatToggle,
+  highlightAboutTab = false,
 }: Props) {
   const period = prevMeta
-    ? `${prevMeta.period_of_report} → ${meta.period_of_report}`
-    : meta.period_of_report
+    ? formatPeriodRange(prevMeta.period_of_report, meta.period_of_report)
+    : formatPeriodWithQuarter(meta.period_of_report)
 
   return (
     <header style={{
@@ -189,7 +192,11 @@ export default function Header({
           <button
             key={tab.id}
             type="button"
-            className={`tab-item${activeTab === tab.id ? ' active' : ''}`}
+            className={[
+              'tab-item',
+              activeTab === tab.id ? 'active' : '',
+              tab.id === 'about' && highlightAboutTab && activeTab !== 'about' ? 'hint' : '',
+            ].filter(Boolean).join(' ')}
             onClick={() => onTabChange(tab.id)}
           >
             {tab.label}

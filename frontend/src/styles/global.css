@@ -237,6 +237,11 @@ button { font-family: var(--font); }
   text-shadow: 0 0 12px var(--teal-glow);
 }
 
+.tab-item.hint {
+  color: var(--text-2);
+  border-bottom-color: rgba(0, 200, 224, 0.35);
+}
+
 /* ─── Column header ──────────────────────────────────────────────────────── */
 
 .col-header {
