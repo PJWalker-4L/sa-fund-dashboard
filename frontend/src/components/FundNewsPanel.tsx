@@ -134,11 +134,12 @@ export default function FundNewsPanel({ data, onTickerClick }: Props) {
         </span>
       </div>
 
-      <div style={{
+      <div className="fund-news-tabs" style={{
         padding: '8px 16px',
         borderBottom: '1px solid var(--border)',
         display: 'flex',
         gap: 6,
+        flexWrap: 'wrap',
       }}>
         {TABS.map(t => {
           const active = tab === t.id

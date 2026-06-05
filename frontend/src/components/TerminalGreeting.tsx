@@ -62,7 +62,7 @@ export default function TerminalGreeting() {
       opacity: visible ? 1 : 0,
       transition: 'opacity 1.4s ease',
     }}>
-      <div style={{
+      <div className="terminal-greeting-inner" style={{
         fontFamily: 'var(--mono)',
         fontSize: 11,
         letterSpacing: '0.02em',
@@ -73,7 +73,7 @@ export default function TerminalGreeting() {
         <span style={{ color: 'var(--teal)', opacity: 0.55, flexShrink: 0, fontSize: 10, letterSpacing: '0.1em', userSelect: 'none' }}>
           SYS //
         </span>
-        <span style={{ color: 'var(--text-1)', lineHeight: 1.5 }}>
+        <span className="terminal-greeting-text" style={{ color: 'var(--text-1)', lineHeight: 1.5 }}>
           {text}
           <span style={{
             display: 'inline-block',

@@ -82,7 +82,7 @@ export default function ThesisInsight({ holdings, strategy, isLoading, onRefresh
       .reduce((s, h) => s + h.value, 0)
 
   return (
-    <div className="nexus-surface" style={{
+    <div className="nexus-surface surface-compact-mobile" style={{
       backgroundColor: 'var(--surface)',
       backgroundImage: 'var(--grid)',
       backgroundSize: '42px 42px',

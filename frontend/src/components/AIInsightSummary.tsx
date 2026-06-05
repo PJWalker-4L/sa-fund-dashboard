@@ -13,7 +13,7 @@ interface Props {
 
 function SummaryLine({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', lineHeight: 1.55 }}>
+    <div className="insight-summary-line" style={{ display: 'flex', gap: 10, alignItems: 'flex-start', lineHeight: 1.55 }}>
       <span style={{
         flexShrink: 0,
         width: 72,

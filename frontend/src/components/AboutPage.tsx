@@ -39,7 +39,7 @@ export default function AboutPage() {
           <span className="section-label">About</span>
         </div>
 
-        <div className="panel-body" style={{ padding: '28px 32px 32px', display: 'flex', flexDirection: 'column', gap: 28 }}>
+        <div className="panel-body about-panel-body" style={{ padding: '28px 32px 32px', display: 'flex', flexDirection: 'column', gap: 28 }}>
           <div>
             <p
               style={{

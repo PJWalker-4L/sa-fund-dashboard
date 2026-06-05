@@ -225,12 +225,12 @@ export default function BucketChart({
   }
 
   return (
-    <div style={{
+    <div className="surface-compact-mobile" style={{
       background: 'var(--surface)',
       border: '1px solid var(--border)',
       padding: '16px 20px',
     }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, gap: 12 }}>
+      <div className="bucket-chart-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
           {selectedBucket && mode === 'buckets' ? (
             <>
@@ -274,7 +274,7 @@ export default function BucketChart({
           )}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+        <div className="bucket-chart-header-actions" style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
           <span style={{ fontSize: 10, color: 'var(--text-3)' }}>{totalLabel}</span>
           <div style={{
             display: 'flex',
@@ -380,7 +380,8 @@ export default function BucketChart({
           </ResponsiveContainer>
         </div>
 
-        <div className="bucket-legend">
+        <div className="bucket-legend-wrap">
+        <div className={`bucket-legend${selectedBucket && mode === 'buckets' ? ' bucket-legend--drill' : ''}`}>
           {selectedBucket && mode === 'buckets' ? (
             <>
               <div className="bucket-legend-row bucket-legend-header bucket-legend-row--drill">
@@ -471,6 +472,7 @@ export default function BucketChart({
               })}
             </>
           )}
+        </div>
         </div>
       </div>
     </div>

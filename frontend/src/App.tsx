@@ -323,7 +323,7 @@ export default function App() {
         </div>
       )}
 
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+      <div className="app-body">
         {chatOpen && (
           <ChatPanel
             onClose={() => setChatOpen(false)}
@@ -419,8 +419,8 @@ export default function App() {
 
               {/* ── CENTER: Map / Timeline ── */}
               <div className="col-center" style={{ display: 'flex', flexDirection: 'column' }}>
-                <div className="col-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span className="col-header-label">
+                <div className="col-header col-header--split" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span className="col-header-label col-header-title">
                     {centerView === 'map' ? 'Holdings Geography' : '13F Exposure — Quarterly Timeline'}
                   </span>
                   <div className="view-toggle" role="group" aria-label="Center panel view">
@@ -509,7 +509,7 @@ export default function App() {
                 onTickerClick={handleTickerClick}
               />
               <PanelShell label="Holdings" flush>
-                <div style={{
+                <div className="holdings-toolbar" style={{
                   padding: '10px 16px',
                   borderBottom: '1px solid var(--border)',
                   display: 'flex',

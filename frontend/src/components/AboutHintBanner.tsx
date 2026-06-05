@@ -7,6 +7,7 @@ export default function AboutHintBanner({ onDismiss, onOpenAbout }: Props) {
   return (
     <div
       role="status"
+      className="about-hint-banner"
       style={{
         background: 'rgba(0,200,224,0.04)',
         borderBottom: '1px solid rgba(0,200,224,0.18)',

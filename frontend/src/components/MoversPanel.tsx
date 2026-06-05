@@ -114,7 +114,7 @@ function MoverList({
 
 export default function MoversPanel({ data, onTickerClick }: Props) {
   return (
-    <div className="nexus-surface" style={{
+    <div className="nexus-surface surface-compact-mobile" style={{
       backgroundColor: 'var(--surface)',
       backgroundImage: 'var(--grid)',
       backgroundSize: '42px 42px',

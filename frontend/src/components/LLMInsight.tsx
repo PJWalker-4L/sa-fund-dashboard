@@ -14,7 +14,7 @@ export default function LLMInsight({ data, isLoading, onRefresh, tickerNames, on
   const [collapsed, setCollapsed] = useState(false)
 
   return (
-    <div className="nexus-surface" style={{
+    <div className="nexus-surface surface-compact-mobile" style={{
       backgroundColor: 'var(--surface)',
       backgroundImage: 'var(--grid)',
       backgroundSize: '42px 42px',

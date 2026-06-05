@@ -48,17 +48,20 @@ export default function Header({
       boxShadow: '0 4px 32px rgba(0,0,0,0.7)',
     }}>
       {/* Top bar */}
-      <div style={{
-        padding: '0 16px',
-        height: 46,
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        gap: 12,
-        borderBottom: '1px solid var(--border)',
-      }}>
+      <div
+        className="app-header-top"
+        style={{
+          padding: '0 16px',
+          height: 46,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: 12,
+          borderBottom: '1px solid var(--border)',
+        }}
+      >
         {/* Brand */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
+        <div className="header-brand-block" style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
           {/* Corner accent marks for the brand area */}
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 0 }}>
             <span style={{
@@ -89,14 +92,14 @@ export default function Header({
           <div style={{ width: 1, height: 18, background: 'var(--border-hi)' }} />
 
           {/* Meta strip */}
-          <div style={{
+          <div className="header-meta-strip" style={{
             display: 'flex',
             alignItems: 'center',
             gap: 10,
             minWidth: 0,
             overflow: 'hidden',
           }}>
-            <span style={{
+            <span className="hide-mobile-md" style={{
               fontSize: 9,
               fontWeight: 700,
               letterSpacing: '0.14em',
@@ -106,7 +109,7 @@ export default function Header({
             }}>
               {meta.fund_name?.split(' ').slice(0, 2).join(' ')}
             </span>
-            <span style={{ color: 'var(--border-hi)', fontSize: 10 }}>·</span>
+            <span className="hide-mobile-md" style={{ color: 'var(--border-hi)', fontSize: 10 }}>·</span>
             <span style={{
               fontFamily: 'var(--mono)',
               fontSize: 10,
@@ -116,8 +119,8 @@ export default function Header({
             }}>
               {period}
             </span>
-            <span style={{ color: 'var(--border-hi)', fontSize: 10 }}>·</span>
-            <span style={{
+            <span className="hide-mobile" style={{ color: 'var(--border-hi)', fontSize: 10 }}>·</span>
+            <span className="hide-mobile" style={{
               fontSize: 9,
               color: 'var(--text-3)',
               letterSpacing: '0.06em',
@@ -132,7 +135,7 @@ export default function Header({
         </div>
 
         {/* Actions */}
-        <div style={{ display: 'flex', gap: 6, flexShrink: 0, alignItems: 'center' }}>
+        <div className="header-actions" style={{ display: 'flex', gap: 6, flexShrink: 0, alignItems: 'center' }}>
           {/* Live indicator dot */}
           <div style={{
             width: 5,

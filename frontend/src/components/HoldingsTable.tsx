@@ -89,7 +89,7 @@ export default function HoldingsTable({ holdings, statusFilter, bucketFilter = n
   }
 
   return (
-    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+    <div className="holdings-table-wrap" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 520 }}>
         <thead>
           <tr style={{ background: 'var(--surface)' }}>
