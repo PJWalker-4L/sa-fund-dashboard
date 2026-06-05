@@ -1,6 +1,6 @@
 import type { FilingMeta } from '../types'
 
-export type DashboardTab = 'portfolio' | 'indicators'
+export type DashboardTab = 'portfolio' | 'indicators' | 'about'
 
 interface Props {
   meta: FilingMeta
@@ -16,6 +16,7 @@ interface Props {
 const TABS: { id: DashboardTab; label: string }[] = [
   { id: 'portfolio', label: 'Portfolio Overview' },
   { id: 'indicators', label: 'Market Indicators' },
+  { id: 'about', label: 'About' },
 ]
 
 export default function Header({

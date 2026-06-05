@@ -19,6 +19,7 @@ import TimelineChart from './components/TimelineChart'
 import FundNewsPanel from './components/FundNewsPanel'
 import HoldingsMap from './components/HoldingsMap'
 import TerminalGreeting from './components/TerminalGreeting'
+import AboutPage from './components/AboutPage'
 import { buildTickerNameMap } from './components/LinkedTickerText'
 import type { HoldingRow } from './types'
 
@@ -430,6 +431,8 @@ export default function App() {
               </div>
             </div>
           )}
+
+          {activeTab === 'about' && <AboutPage />}
 
           {activeTab === 'indicators' && (
             <div className="page-content">
