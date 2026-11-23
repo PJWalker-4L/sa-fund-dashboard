@@ -14,6 +14,29 @@ const PH = CHART_H - MT - MB
 const C_SHARES = '#00c8e0'
 const C_CALLS  = '#3ab0ff'
 const C_PUTS   = '#f97316'
+const C_ADV    = '#fbbf24'
+
+/** SEC adviser registration AUM — same label everywhere (legend, tooltip, footnotes). */
+const OFFICIAL_FUND_ASSETS = 'Official fund assets'
+
+function fmtBillions(b: number): string {
+  return `$${b.toFixed(1)}B`
+}
+
+/** Plain-language gap between 13F headline sum and official fund assets for this quarter. */
+function officialVs13fNote(exposureBillions: number, advBillions: number): string {
+  const diff = exposureBillions - advBillions
+  const thirteen = fmtBillions(exposureBillions)
+  const official = fmtBillions(advBillions)
+  if (Math.abs(diff) < 0.08) {
+    return `This quarter, 13F sum (${thirteen}) and ${OFFICIAL_FUND_ASSETS.toLowerCase()} (${official}) are close — but the filing table still is not the same as fund size.`
+  }
+  const gap = fmtBillions(Math.abs(diff))
+  if (diff > 0) {
+    return `This quarter, 13F sum (${thirteen}) is ${gap} above ${OFFICIAL_FUND_ASSETS.toLowerCase()} (${official}) — often because put notionals inflate the filing total.`
+  }
+  return `This quarter, 13F sum (${thirteen}) is ${gap} below ${OFFICIAL_FUND_ASSETS.toLowerCase()} (${official}) — the filing table is not the same as total fund size.`
+}
 
 interface AdvInfo {
   billions: number
@@ -125,15 +148,15 @@ export default function TimelineChart({ data }: Props) {
               }}>{label}</span>
             ))}
             <span
-              title="Official fund assets from the SEC adviser registration (not 13F holdings notional)"
+              title="SEC adviser registration — fund size, not 13F holdings notional"
               style={{
                 fontSize: 8, padding: '1px 5px', fontWeight: 700,
-                letterSpacing: '0.08em', fontFamily: 'var(--font)',
-                border: '1px solid rgba(251,191,36,0.45)', color: '#fbbf24',
+                letterSpacing: '0.06em', fontFamily: 'var(--font)',
+                border: `1px solid rgba(251,191,36,0.45)`, color: C_ADV,
                 background: 'rgba(251,191,36,0.12)',
               }}
             >
-              ● ADV
+              ● {OFFICIAL_FUND_ASSETS}
             </span>
           </div>
         </div>
@@ -426,30 +449,32 @@ export default function TimelineChart({ data }: Props) {
               }}>
                 <div style={{
                   fontSize: 8, fontWeight: 700, letterSpacing: '0.12em',
-                  textTransform: 'uppercase', color: '#fbbf24',
+                  textTransform: 'uppercase', color: C_ADV,
                   fontFamily: 'var(--font)', marginBottom: 4,
                 }}>
-                  Official fund assets
+                  {OFFICIAL_FUND_ASSETS}
                 </div>
                 <div style={{
                   fontFamily: 'var(--mono)', fontSize: 17,
-                  color: '#fbbf24', fontWeight: 700,
-                  lineHeight: 1, marginBottom: 5,
+                  color: C_ADV, fontWeight: 700,
+                  lineHeight: 1, marginBottom: 6,
                   textShadow: '0 0 12px rgba(251,191,36,0.25)',
                 }}>
-                  ${hovRow.advInfo.billions.toFixed(1)}B
+                  {fmtBillions(hovRow.advInfo.billions)}
                 </div>
                 <div style={{
                   fontSize: 10, color: 'var(--text-2)',
-                  fontFamily: 'var(--font)', lineHeight: 1.45,
+                  fontFamily: 'var(--font)', lineHeight: 1.45, marginBottom: 6,
                 }}>
                   {hovRow.advInfo.detail}
                 </div>
                 <div style={{
-                  fontSize: 9, color: 'var(--text-3)',
-                  fontFamily: 'var(--font)', lineHeight: 1.4, marginTop: 4,
+                  fontSize: 10, color: 'var(--text-1)',
+                  fontFamily: 'var(--font)', lineHeight: 1.5,
+                  padding: '6px 0 0',
+                  borderTop: '1px solid rgba(255,255,255,0.06)',
                 }}>
-                  Reported to the SEC on the fund&apos;s adviser registration — not the 13F holdings total above.
+                  {officialVs13fNote(hovRow.exposureBillions, hovRow.advInfo.billions)}
                 </div>
               </div>
             )}
@@ -516,7 +541,7 @@ export default function TimelineChart({ data }: Props) {
           textTransform: 'uppercase', color: '#fbbf24',
           fontFamily: 'var(--font)', marginBottom: 6,
         }}>
-          13F notional ≠ fund NAV
+          13F notional ≠ official fund assets
         </div>
         <p style={{
           margin: 0, fontSize: 12, color: 'var(--text-1)',

@@ -19,8 +19,8 @@ ANNOTATIONS = [
     {
         "quarter": "Q4 2025",
         "kind": "regulatory_aum",
-        "label": "Regulatory AUM",
-        "detail": "As of 31 Dec 2025 — assets under management filed with the SEC.",
+        "label": "Official fund assets",
+        "detail": "$9.3B as of 31 Dec 2025 (SEC adviser registration; 13F sum this quarter was ~$5.5B)",
         "value_billions": 9.3,
     },
     {
@@ -39,8 +39,8 @@ PERFORMANCE_BADGES = [
 
 DISCLAIMER = (
     "The teal line and bars sum reported 13F position values (shares, calls, puts). "
-    "Large put books inflate that headline figure versus actual assets. "
-    "Yellow dots show Form ADV regulatory AUM where annotated — e.g. Q1 2026: ADV $9.3B vs $13.7B 13F notional."
+    "That headline can sit above or below official fund assets (yellow dot) — puts often inflate the 13F side. "
+    "Example Q1 2026: ~$13.7B 13F notional vs $9.3B official fund assets."
 )
 
 
