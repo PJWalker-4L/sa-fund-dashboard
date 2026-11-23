@@ -2,9 +2,9 @@ import { useRef, useEffect, type Dispatch, type SetStateAction } from 'react'
 import { sendChatMessage } from '../api'
 import type { ChatMessage } from '../types'
 
+// openai/gpt-oss-20b exists on Groq but may return 403 until enabled in console.groq.com → Project → Limits.
 const MODELS = [
   { value: 'groq/openai/gpt-oss-120b', label: 'Groq · GPT-OSS 120B' },
-  { value: 'groq/openai/gpt-oss-20b',  label: 'Groq · GPT-OSS 20B' },
 ] as const
 
 export const DEFAULT_CHAT_MODEL = MODELS[0].value

@@ -514,15 +514,15 @@ export default function TimelineChart({ data }: Props) {
       {/* ── Annotations ─────────────────────────────────────────── */}
       {data.annotations.length > 0 && (
         <div style={{
-          padding: '6px 16px',
+          padding: '10px 16px',
           borderTop: '1px solid var(--border)',
-          display: 'flex', flexWrap: 'wrap', gap: '3px 14px',
+          display: 'flex', flexWrap: 'wrap', gap: '8px 20px',
         }}>
           {data.annotations.map(a => (
             <span key={a.quarter + a.kind} style={{
-              fontSize: 10, color: 'var(--text-2)', fontFamily: 'var(--font)', lineHeight: 1.45,
+              fontSize: 12, color: 'var(--text-1)', fontFamily: 'var(--font)', lineHeight: 1.5,
             }}>
-              <span style={{ color: 'rgba(0,200,224,0.45)' }}>{a.quarter}</span>
+              <span style={{ color: 'var(--teal)', fontWeight: 600 }}>{a.quarter}</span>
               {' · '}{a.label}: {a.detail}
             </span>
           ))}

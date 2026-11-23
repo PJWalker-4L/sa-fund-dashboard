@@ -933,6 +933,30 @@ async def _call_anthropic(user_prompt: str, system: str, max_tokens: int = 500) 
         return r.json()["content"][0]["text"].strip()
 
 
+def _groq_error_user_message(response: httpx.Response, model: str) -> str | None:
+    if response.status_code not in (403, 404):
+        return None
+    try:
+        body = response.json()
+    except Exception:
+        return None
+    err = body.get("error") if isinstance(body, dict) else None
+    if not isinstance(err, dict):
+        return None
+    code = err.get("code") or ""
+    if code == "model_permission_blocked_project" or response.status_code == 403:
+        return (
+            f"Groq blocked model `{model}` for this API project. "
+            "Enable it under Project → Limits at console.groq.com, or select GPT-OSS 120B."
+        )
+    if code == "model_not_found" or response.status_code == 404:
+        return (
+            f"Groq does not serve model `{model}` for this API key. "
+            "Pick GPT-OSS 120B or set GROQ_MODEL in .env.local."
+        )
+    return None
+
+
 async def _call_groq_chat(messages: list[dict], system: str, model: str) -> str:
     async with httpx.AsyncClient(timeout=60, verify=_ssl_ctx()) as client:
         r = await client.post(
@@ -946,8 +970,14 @@ async def _call_groq_chat(messages: list[dict], system: str, model: str) -> str:
                 "include_reasoning": False,
             },
         )
+        friendly = _groq_error_user_message(r, model)
+        if friendly:
+            return friendly
         r.raise_for_status()
-        return _extract_groq_message_text(r.json()["choices"][0]["message"])
+        text = _extract_groq_message_text(r.json()["choices"][0]["message"])
+        if not text.strip():
+            return "No reply from the model (empty response). Try again or switch to GPT-OSS 120B."
+        return text
 
 
 async def _call_anthropic_chat(messages: list[dict], system: str, model: str) -> str:
