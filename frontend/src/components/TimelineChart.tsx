@@ -15,10 +15,16 @@ const C_SHARES = '#00c8e0'
 const C_CALLS  = '#3ab0ff'
 const C_PUTS   = '#f97316'
 
+interface AdvInfo {
+  billions: number
+  label: string
+  detail: string
+}
+
 interface ChartRow {
   quarter: string
   exposureBillions: number
-  advBillions: number | null
+  advInfo: AdvInfo | null
   shares_pct: number
   calls_pct: number
   puts_pct: number
@@ -26,12 +32,18 @@ interface ChartRow {
 
 function buildRows(data: HistoryResponse): ChartRow[] {
   const advMap = Object.fromEntries(
-    data.annotations.filter(a => a.value_billions != null).map(a => [a.quarter, a.value_billions!]),
+    data.annotations
+      .filter(a => a.value_billions != null)
+      .map(a => [a.quarter, {
+        billions: a.value_billions!,
+        label: a.label,
+        detail: a.detail,
+      } satisfies AdvInfo]),
   )
   return data.points.map(p => ({
     quarter: p.quarter,
     exposureBillions: p.total_thousands / 1_000_000,
-    advBillions: advMap[p.quarter] ?? null,
+    advInfo: advMap[p.quarter] ?? null,
     shares_pct: p.shares_pct,
     calls_pct: p.calls_pct,
     puts_pct: p.puts_pct,
@@ -103,8 +115,8 @@ export default function TimelineChart({ data }: Props) {
           }}>
             Quarterly Exposure
           </span>
-          <div style={{ display: 'flex', gap: 4 }}>
-            {([['SH', C_SHARES], ['CALL', C_CALLS], ['PUT', C_PUTS]] as const).map(([label, color]) => (
+          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
+            {([['SHARES', C_SHARES], ['CALL', C_CALLS], ['PUT', C_PUTS]] as const).map(([label, color]) => (
               <span key={label} style={{
                 fontSize: 8, padding: '1px 5px', fontWeight: 700,
                 letterSpacing: '0.08em', fontFamily: 'var(--font)',
@@ -112,6 +124,17 @@ export default function TimelineChart({ data }: Props) {
                 background: `${color}18`,
               }}>{label}</span>
             ))}
+            <span
+              title="Official fund assets from the SEC adviser registration (not 13F holdings notional)"
+              style={{
+                fontSize: 8, padding: '1px 5px', fontWeight: 700,
+                letterSpacing: '0.08em', fontFamily: 'var(--font)',
+                border: '1px solid rgba(251,191,36,0.45)', color: '#fbbf24',
+                background: 'rgba(251,191,36,0.12)',
+              }}
+            >
+              ● ADV
+            </span>
           </div>
         </div>
 
@@ -207,7 +230,7 @@ export default function TimelineChart({ data }: Props) {
             const isHov  = hovered === i
 
             return (
-              <g key={r.quarter} onMouseEnter={() => setHovered(i)} style={{ cursor: 'crosshair' }}>
+              <g key={r.quarter}>
                 {/* Column highlight */}
                 {isHov && (
                   <rect
@@ -275,7 +298,7 @@ export default function TimelineChart({ data }: Props) {
           })}
 
           {/* Area fill */}
-          <path d={areaPath} fill="url(#tl-area)" />
+          <path d={areaPath} fill="url(#tl-area)" pointerEvents="none" />
 
           {/* Glow line */}
           <path
@@ -283,21 +306,23 @@ export default function TimelineChart({ data }: Props) {
             stroke="rgba(0,200,224,0.35)" strokeWidth={4}
             filter="url(#tl-glow)"
             strokeLinecap="round" strokeLinejoin="round"
+            pointerEvents="none"
           />
           {/* Crisp line */}
           <path
             d={linePath} fill="none"
             stroke="#00c8e0" strokeWidth={1.5}
             strokeLinecap="round" strokeLinejoin="round"
+            pointerEvents="none"
           />
 
           {/* ADV dots */}
-          {rows.map((r, i) => r.advBillions != null && (
-            <g key={`adv-${i}`}>
-              <circle cx={xOf(i)} cy={yOf(r.advBillions)} r={4}
+          {rows.map((r, i) => r.advInfo != null && (
+            <g key={`adv-${i}`} pointerEvents="none">
+              <circle cx={xOf(i)} cy={yOf(r.advInfo.billions)} r={4}
                 fill="none" stroke="rgba(251,191,36,0.35)" strokeWidth={4}
               />
-              <circle cx={xOf(i)} cy={yOf(r.advBillions)} r={3}
+              <circle cx={xOf(i)} cy={yOf(r.advInfo.billions)} r={3}
                 fill="#fbbf24"
               />
             </g>
@@ -312,6 +337,7 @@ export default function TimelineChart({ data }: Props) {
               fill={hovered === i ? '#00c8e0' : 'var(--surface)'}
               stroke="#00c8e0" strokeWidth={1.5}
               filter={hovered === i ? 'url(#dot-glow)' : undefined}
+              pointerEvents="none"
               style={{ transition: 'r 0.15s ease, fill 0.15s ease' }}
             />
           ))}
@@ -322,7 +348,22 @@ export default function TimelineChart({ data }: Props) {
             r={10} fill="none" stroke="rgba(0,200,224,0.35)" strokeWidth={1}
             animate={{ r: [7, 13, 7], opacity: [0.5, 0, 0.5] }}
             transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+            pointerEvents="none"
           />
+
+          {/* Column hit targets — line/area sit above bars and would block hover without this */}
+          {rows.map((r, i) => (
+            <rect
+              key={`hit-${r.quarter}`}
+              x={ML + i * (PW / n)}
+              y={MT}
+              width={PW / n}
+              height={CHART_H - MT}
+              fill="transparent"
+              onMouseEnter={() => setHovered(i)}
+              style={{ cursor: 'crosshair' }}
+            />
+          ))}
 
           {/* X-axis labels */}
           {rows.map((r, i) => (
@@ -363,20 +404,53 @@ export default function TimelineChart({ data }: Props) {
               {hovRow.quarter}
             </div>
             <div style={{
+              fontSize: 8, fontWeight: 700, letterSpacing: '0.12em',
+              textTransform: 'uppercase', color: 'var(--text-2)',
+              fontFamily: 'var(--font)', marginBottom: 3,
+            }}>
+              13F reported notional
+            </div>
+            <div style={{
               fontFamily: 'var(--mono)', fontSize: 18,
               color: 'var(--text-1)', fontWeight: 600,
-              lineHeight: 1, marginBottom: 8,
+              lineHeight: 1, marginBottom: hovRow.advInfo ? 10 : 8,
               textShadow: '0 0 14px rgba(0,200,224,0.2)',
             }}>
               {fmtVal(hovRow.exposureBillions * 1_000_000)}
             </div>
-            {hovRow.advBillions != null && (
+            {hovRow.advInfo != null && (
               <div style={{
-                fontFamily: 'var(--mono)', fontSize: 10,
-                color: '#fbbf24', marginBottom: 7,
-                letterSpacing: '0.05em',
+                marginBottom: 8,
+                padding: '8px 0 0',
+                borderTop: '1px solid rgba(251,191,36,0.28)',
               }}>
-                ADV ${hovRow.advBillions.toFixed(1)}B
+                <div style={{
+                  fontSize: 8, fontWeight: 700, letterSpacing: '0.12em',
+                  textTransform: 'uppercase', color: '#fbbf24',
+                  fontFamily: 'var(--font)', marginBottom: 4,
+                }}>
+                  Official fund assets
+                </div>
+                <div style={{
+                  fontFamily: 'var(--mono)', fontSize: 17,
+                  color: '#fbbf24', fontWeight: 700,
+                  lineHeight: 1, marginBottom: 5,
+                  textShadow: '0 0 12px rgba(251,191,36,0.25)',
+                }}>
+                  ${hovRow.advInfo.billions.toFixed(1)}B
+                </div>
+                <div style={{
+                  fontSize: 10, color: 'var(--text-2)',
+                  fontFamily: 'var(--font)', lineHeight: 1.45,
+                }}>
+                  {hovRow.advInfo.detail}
+                </div>
+                <div style={{
+                  fontSize: 9, color: 'var(--text-3)',
+                  fontFamily: 'var(--font)', lineHeight: 1.4, marginTop: 4,
+                }}>
+                  Reported to the SEC on the fund&apos;s adviser registration — not the 13F holdings total above.
+                </div>
               </div>
             )}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
@@ -421,7 +495,7 @@ export default function TimelineChart({ data }: Props) {
         }}>
           {data.annotations.map(a => (
             <span key={a.quarter + a.kind} style={{
-              fontSize: 9, color: 'var(--text-3)', fontFamily: 'var(--font)',
+              fontSize: 10, color: 'var(--text-2)', fontFamily: 'var(--font)', lineHeight: 1.45,
             }}>
               <span style={{ color: 'rgba(0,200,224,0.45)' }}>{a.quarter}</span>
               {' · '}{a.label}: {a.detail}
@@ -432,11 +506,24 @@ export default function TimelineChart({ data }: Props) {
 
       {/* ── Disclaimer ──────────────────────────────────────────── */}
       <div style={{
-        padding: '4px 16px 10px',
-        fontSize: 9, color: 'var(--text-3)',
-        fontFamily: 'var(--font)', opacity: 0.55, lineHeight: 1.45,
+        padding: '10px 16px 12px',
+        borderTop: data.annotations.length > 0 ? undefined : '1px solid var(--border)',
+        background: 'linear-gradient(90deg, rgba(251,191,36,0.07) 0%, transparent 42%)',
+        borderLeft: '3px solid rgba(251,191,36,0.5)',
       }}>
-        {data.disclaimer}
+        <div style={{
+          fontSize: 10, fontWeight: 700, letterSpacing: '0.1em',
+          textTransform: 'uppercase', color: '#fbbf24',
+          fontFamily: 'var(--font)', marginBottom: 6,
+        }}>
+          13F notional ≠ fund NAV
+        </div>
+        <p style={{
+          margin: 0, fontSize: 12, color: 'var(--text-1)',
+          fontFamily: 'var(--font)', lineHeight: 1.55, maxWidth: 720,
+        }}>
+          {data.disclaimer}
+        </p>
       </div>
     </div>
   )

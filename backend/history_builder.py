@@ -20,7 +20,7 @@ ANNOTATIONS = [
         "quarter": "Q4 2025",
         "kind": "regulatory_aum",
         "label": "Regulatory AUM",
-        "detail": "$9.3B per Form ADV (31 Dec 2025)",
+        "detail": "As of 31 Dec 2025 — assets under management filed with the SEC.",
         "value_billions": 9.3,
     },
     {
@@ -38,8 +38,9 @@ PERFORMANCE_BADGES = [
 ]
 
 DISCLAIMER = (
-    "13F reported notional is not fund NAV. Large put positions inflate headline exposure; "
-    "Q1 2026 ADV AUM was $9.3B vs $13.7B 13F notional."
+    "The teal line and bars sum reported 13F position values (shares, calls, puts). "
+    "Large put books inflate that headline figure versus actual assets. "
+    "Yellow dots show Form ADV regulatory AUM where annotated — e.g. Q1 2026: ADV $9.3B vs $13.7B 13F notional."
 )
 
 
