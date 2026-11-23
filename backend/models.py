@@ -95,6 +95,8 @@ class MoverItem(BaseModel):
     putCall: Optional[str] = None
     pct_change: float
     value_change_thousands: float
+    # new | closed | increased | decreased — QoQ 13F line, not market performance
+    delta_status: str
 
 
 class MoversResponse(BaseModel):

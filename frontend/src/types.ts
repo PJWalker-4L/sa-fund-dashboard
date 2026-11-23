@@ -99,6 +99,7 @@ export interface MoverItem {
   putCall: string | null
   pct_change: number
   value_change_thousands: number
+  delta_status: 'new' | 'closed' | 'increased' | 'decreased'
 }
 
 export interface MoversResponse {

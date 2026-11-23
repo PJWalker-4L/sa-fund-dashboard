@@ -291,10 +291,12 @@ async def get_movers():
                 putCall=state_manager.normalize_put_call(pos.get("putCall")),
                 pct_change=round(float(pct), 2),
                 value_change_thousands=float(pos.get("value_change") or 0),
+                delta_status=status_key,
             ))
 
-    all_movers.sort(key=lambda m: m.pct_change, reverse=True)
-    gainers = [m for m in all_movers if m.pct_change > 0][:5]
+    gainers_raw = [m for m in all_movers if m.pct_change > 0]
+    gainers_raw.sort(key=lambda m: m.value_change_thousands, reverse=True)
+    gainers = gainers_raw[:5]
 
     losers_raw = [m for m in all_movers if m.pct_change < 0]
     losers_raw.sort(key=lambda m: (m.pct_change, m.value_change_thousands))
