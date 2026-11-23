@@ -4,7 +4,13 @@ from pathlib import Path
 from collections import defaultdict
 import httpx
 from dotenv import load_dotenv
-from state_manager import get_cached_analysis, save_analysis, get_cached_strategy, save_strategy
+from state_manager import (
+    get_cached_analysis,
+    save_analysis,
+    get_cached_strategy,
+    save_strategy,
+    normalize_put_call,
+)
 
 _root = Path(__file__).parent.parent
 load_dotenv(_root / ".env.local")
@@ -13,6 +19,8 @@ load_dotenv(_root / ".env")
 _PROVIDER = os.getenv("LLM_PROVIDER", "groq").lower()
 _GROQ_KEY = os.getenv("GROQ_API_KEY", "")
 _ANTHROPIC_KEY = os.getenv("ANTHROPIC_API_KEY", "")
+_GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
+_ANTHROPIC_MODEL = os.getenv("ANTHROPIC_MODEL", "claude-haiku-4-5-20251001")
 
 _SYSTEM = (
     "You are a senior hedge fund analyst writing for a professional buy-side audience. "
@@ -21,7 +29,8 @@ _SYSTEM = (
     "13F types: SHARE = long equity, CALL = bullish option, PUT = bearish/short option. "
     "Sections ①–③ are already written in the output prefix. Do NOT repeat or contradict them. "
     "Do NOT rewrite portfolio expression, stacked long, or mixed expression. "
-    "Write ONLY sections ④ and ⑤ as specified."
+    "Write ONLY sections ④ and ⑤ as specified. "
+    "Output only the final sections — no planning, chain-of-thought, or meta commentary."
 )
 
 _USER_TEMPLATE = """\
@@ -39,18 +48,18 @@ Position changes ({n} positions, UNCHANGED excluded):
 Write ONLY these two sections. US English. Complete sentences. No nested clauses.
 
 ④ KEY MOVES vs. {prev_label}
-Provide 3–5 bullet points. Each bullet: ticker, instrument type, notional, and one sentence on why it matters.
-Focus on the largest QoQ changes not already explained in sections ①–③.
-Prioritize: new put books (SMH, NVDA, ORCL), energy/AI infrastructure share increases (CLSK, RIOT, CORZ, APLD), and full exits (LITE, INTC Call).
+Provide 3–5 bullet points. Each bullet: ticker, instrument type, notional ($ from the table), and one sentence on why it matters.
+Use ONLY tickers and instruments listed in the position changes table — do not invent or assume holdings.
+Prioritize the largest QoQ value changes (NEW, CLOSED, INCREASED, DECREASED) by notional.
 Do NOT include tickers from section ② (stacked long: {stacked_conviction}).
-Do NOT describe mixed-expression tickers ({mixed_tickers}) as bullish, growing interest, or long conviction — those names have large put books.
-Do NOT misread small share stubs on put-heavy names as new long bets.
+Do NOT describe mixed-expression tickers ({mixed_tickers}) as bullish, growing interest, or long conviction unless the table shows net long legs only.
+Start section ④ with the exact header line: ④ KEY MOVES vs. {prev_label}
 
 ⑤ RISK NOTE
 Write 2–3 sentences as a short paragraph.
-Primary risk: a semiconductor rally threatening the ~{put_notional} put book.
-Name specific tickers (NVDA, SMH, AMD, MU, TSM) and notional where relevant.
-Do NOT frame long energy or infrastructure positions as the main tail risk."""
+Ground risks in the instrument mix and the largest moves in the table (puts: {put_notional} reported put notional this quarter).
+Do NOT cite put exposure or tickers that do not appear in the position changes table or mix above.
+Start section ⑤ with the exact header line: ⑤ RISK NOTE"""
 
 _STRATEGY_SYSTEM = """\
 You are a senior analyst at Situational Awareness Partners LP, an AI-infrastructure hedge fund founded by Leopold Aschenbrenner (ex-OpenAI researcher, author of the "Situational Awareness" paper).
@@ -152,8 +161,8 @@ def _current_holdings_from_delta(delta: dict) -> list[dict]:
 def _instrument_mix_parts(holdings: list[dict]) -> dict:
     shares = calls = puts = 0.0
     for h in holdings:
-        v = h.get("value", 0) or 0
-        pc = h.get("putCall")
+        v = float(h.get("value", 0) or 0)
+        pc = normalize_put_call(h.get("putCall"))
         if pc == "Put":
             puts += v
         elif pc == "Call":
@@ -297,20 +306,11 @@ def _section_portfolio_expression(mix: dict) -> str:
         ),
     ]
     if mix["puts_pct"] > 50:
-        lines.append(
-            "By 13F notional, put options account for more than half of reported exposure. "
-            "This reflects a predominantly bearish options book at face value."
-        )
+        lines.append("In this filing, puts account for more than half of reported notional.")
     elif mix["puts_pct"] > mix["shares_pct"]:
-        lines.append(
-            "Put notional exceeds share notional in this filing. "
-            "The book leans bearish on a reported basis."
-        )
+        lines.append("In this filing, puts exceed shares in reported notional.")
     else:
-        lines.append(
-            "Share and call notional together exceed put notional in this filing. "
-            "The book reads as net long on a reported basis."
-        )
+        lines.append("In this filing, shares and calls outweigh puts.")
     lines.append(
         "13F notional reflects the value of the underlying equity, not the option premium paid. "
         "Capital at risk is lower than these headline figures suggest."
@@ -407,10 +407,36 @@ def _delta_to_csv(delta: dict) -> str:
     return "\n".join(rows)
 
 
+_LEGACY_INSIGHT_PHRASES = (
+    "reads as net long on a reported basis",
+    "leans bearish on a reported basis",
+    "Share and call notional together exceed put notional",
+)
+
+
+def _analysis_cache_fresh(text: str) -> bool:
+    lower = text.lower()
+    if any(p.lower() in lower for p in _LEGACY_INSIGHT_PHRASES):
+        return False
+    if "llm sections are temporarily unavailable" in lower:
+        return False
+    return True
+
+
+def _analysis_has_llm_sections(text: str) -> bool:
+    if not text.strip():
+        return False
+    upper = text.upper()
+    has_moves = "④" in text or "KEY MOVES" in upper
+    has_risk = "⑤" in text or "RISK NOTE" in upper
+    return has_moves and has_risk
+
+
 async def analyze_delta(
     delta: dict,
     curr_meta: dict,
     prev_meta: dict,
+    current_holdings: list[dict] | None = None,
 ) -> tuple[str, bool]:
     filing_pair = (
         f"{curr_meta.get('accession_number', 'curr')}"
@@ -418,7 +444,7 @@ async def analyze_delta(
     )
 
     cached = get_cached_analysis(filing_pair)
-    if cached:
+    if cached and _analysis_has_llm_sections(cached) and _analysis_cache_fresh(cached):
         return cached, True
 
     total_changes = sum(len(delta.get(k, [])) for k in ("new", "closed", "increased", "decreased"))
@@ -427,9 +453,9 @@ async def analyze_delta(
         save_analysis(filing_pair, text)
         return text, False
 
-    curr_holdings = _current_holdings_from_delta(delta)
-    mix_parts = _instrument_mix_parts(curr_holdings)
-    mix = _instrument_mix(curr_holdings, mix_parts["total"])
+    holdings_for_mix = current_holdings or _current_holdings_from_delta(delta)
+    mix_parts = _instrument_mix_parts(holdings_for_mix)
+    mix = _instrument_mix(holdings_for_mix, mix_parts["total"])
     stacked_rows = _stacked_rows(delta)
     mixed_rows = _mixed_rows(delta)
     stacked = _stacked_conviction(delta)
@@ -449,10 +475,16 @@ async def analyze_delta(
         delta_csv=_delta_to_csv(delta),
     )
 
-    llm_text = await _call(prompt, _SYSTEM, max_tokens=650)
     prefix = _build_deterministic_insight(mix_parts, stacked_rows, mixed_rows, curr_label, prev_label)
+    try:
+        llm_text = _normalize_llm_insight_sections(
+            await _call(prompt, _SYSTEM, max_tokens=1200),
+        )
+    except httpx.HTTPError:
+        llm_text = _llm_sections_unavailable()
     text = prefix + llm_text
-    save_analysis(filing_pair, text)
+    if "llm sections are temporarily unavailable" not in llm_text.lower():
+        save_analysis(filing_pair, text)
     return text, False
 
 
@@ -498,7 +530,12 @@ async def analyze_strategy(
         top_holdings="\n".join(top_lines),
     )
 
-    text = await _call(prompt, _STRATEGY_SYSTEM, max_tokens=900)
+    try:
+        text = await _call(prompt, _STRATEGY_SYSTEM, max_tokens=900)
+    except httpx.HTTPError:
+        text = (
+            "Strategy commentary unavailable — check LLM_PROVIDER, GROQ_MODEL, and API keys in .env.local."
+        )
     save_strategy(filing_key, text)
     return text, False
 
@@ -750,10 +787,40 @@ def _ssl_ctx():
     return ctx
 
 
+def _llm_sections_unavailable() -> str:
+    return (
+        "\n④ KEY MOVES\n"
+        "LLM sections are temporarily unavailable. "
+        "Check GROQ_MODEL in .env.local (e.g. openai/gpt-oss-120b) and refresh AI Insight.\n\n"
+        "⑤ RISK NOTE\n"
+        "Sections ①–③ above are filing-derived facts and remain valid without the LLM layer."
+    )
+
+
+def _normalize_llm_insight_sections(llm_text: str) -> str:
+    """Ensure ④/⑤ exist; append a short ⑤ if the model truncated after KEY MOVES."""
+    text = llm_text.strip()
+    if not text:
+        return _llm_sections_unavailable()
+    upper = text.upper()
+    has_moves = "④" in text or "KEY MOVES" in upper
+    has_risk = "⑤" in text or "RISK NOTE" in upper
+    if has_moves and not has_risk:
+        text += (
+            "\n\n⑤ RISK NOTE\n"
+            "Quarter-over-quarter position changes can shift concentration and instrument mix; "
+            "weigh new calls, full exits, and remaining share stakes together."
+        )
+        has_risk = True
+    if has_moves and has_risk:
+        return text
+    return _llm_sections_unavailable()
+
+
 async def _call(user_prompt: str, system: str, max_tokens: int = 500) -> str:
     if _PROVIDER == "groq" and _GROQ_KEY:
         return await _call_groq(user_prompt, system, max_tokens)
-    elif _PROVIDER == "anthropic" and _ANTHROPIC_KEY:
+    if _PROVIDER == "anthropic" and _ANTHROPIC_KEY:
         return await _call_anthropic(user_prompt, system, max_tokens)
     return (
         "LLM analysis unavailable — add GROQ_API_KEY or ANTHROPIC_API_KEY to your .env file.\n"
@@ -761,23 +828,35 @@ async def _call(user_prompt: str, system: str, max_tokens: int = 500) -> str:
     )
 
 
+def _extract_groq_message_text(message: dict) -> str:
+    content = (message.get("content") or "").strip()
+    if content:
+        return content
+    # gpt-oss may fill reasoning when include_reasoning is left on
+    reasoning = (message.get("reasoning") or "").strip()
+    if reasoning and _analysis_has_llm_sections(reasoning):
+        return reasoning
+    return reasoning
+
+
 async def _call_groq(user_prompt: str, system: str, max_tokens: int = 500) -> str:
-    async with httpx.AsyncClient(timeout=30, verify=_ssl_ctx()) as client:
+    async with httpx.AsyncClient(timeout=90, verify=_ssl_ctx()) as client:
         r = await client.post(
             "https://api.groq.com/openai/v1/chat/completions",
             headers={"Authorization": f"Bearer {_GROQ_KEY}", "Content-Type": "application/json"},
             json={
-                "model": "llama-3.1-8b-instant",
+                "model": _GROQ_MODEL,
                 "messages": [
                     {"role": "system", "content": system},
                     {"role": "user", "content": user_prompt},
                 ],
                 "max_tokens": max_tokens,
                 "temperature": 0.3,
+                "include_reasoning": False,
             },
         )
         r.raise_for_status()
-        return r.json()["choices"][0]["message"]["content"].strip()
+        return _extract_groq_message_text(r.json()["choices"][0]["message"])
 
 
 async def _call_anthropic(user_prompt: str, system: str, max_tokens: int = 500) -> str:
@@ -790,7 +869,7 @@ async def _call_anthropic(user_prompt: str, system: str, max_tokens: int = 500) 
                 "Content-Type": "application/json",
             },
             json={
-                "model": "claude-haiku-4-5-20251001",
+                "model": _ANTHROPIC_MODEL,
                 "max_tokens": max_tokens,
                 "system": system,
                 "messages": [{"role": "user", "content": user_prompt}],
@@ -801,7 +880,7 @@ async def _call_anthropic(user_prompt: str, system: str, max_tokens: int = 500) 
 
 
 async def _call_groq_chat(messages: list[dict], system: str, model: str) -> str:
-    async with httpx.AsyncClient(timeout=30, verify=_ssl_ctx()) as client:
+    async with httpx.AsyncClient(timeout=60, verify=_ssl_ctx()) as client:
         r = await client.post(
             "https://api.groq.com/openai/v1/chat/completions",
             headers={"Authorization": f"Bearer {_GROQ_KEY}", "Content-Type": "application/json"},
@@ -810,10 +889,11 @@ async def _call_groq_chat(messages: list[dict], system: str, model: str) -> str:
                 "messages": [{"role": "system", "content": system}] + messages,
                 "max_tokens": 600,
                 "temperature": 0.2,
+                "include_reasoning": False,
             },
         )
         r.raise_for_status()
-        return r.json()["choices"][0]["message"]["content"].strip()
+        return _extract_groq_message_text(r.json()["choices"][0]["message"])
 
 
 async def _call_anthropic_chat(messages: list[dict], system: str, model: str) -> str:

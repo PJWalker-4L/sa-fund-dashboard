@@ -119,7 +119,7 @@ class ChatMessage(BaseModel):
 class ChatRequest(BaseModel):
     message: str
     history: list[ChatMessage] = []
-    model: str = "groq/llama-3.1-8b-instant"
+    model: str = "groq/openai/gpt-oss-120b"
 
 
 class ChatResponse(BaseModel):

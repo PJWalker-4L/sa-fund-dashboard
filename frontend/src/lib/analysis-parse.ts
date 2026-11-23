@@ -50,6 +50,8 @@ function stackedLinesFromSection(section: string, limit: number): string[] {
 }
 
 function keyMovesFromSection(section: string, limit: number): string[] {
+  if (/llm sections are temporarily unavailable/i.test(section)) return []
+
   const bullets = section
     .split('\n')
     .map(l => l.trim())

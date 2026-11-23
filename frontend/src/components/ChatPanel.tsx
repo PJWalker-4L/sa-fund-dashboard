@@ -3,11 +3,11 @@ import { sendChatMessage } from '../api'
 import type { ChatMessage } from '../types'
 
 const MODELS = [
-  { value: 'groq/llama-3.1-8b-instant',    label: 'Groq · Llama 8B (fast)' },
-  { value: 'groq/llama-3.3-70b-versatile', label: 'Groq · Llama 70B (strong)' },
+  { value: 'groq/openai/gpt-oss-120b', label: 'Groq · GPT-OSS 120B' },
+  { value: 'groq/openai/gpt-oss-20b',  label: 'Groq · GPT-OSS 20B' },
 ] as const
 
-export const DEFAULT_CHAT_MODEL = MODELS[1].value
+export const DEFAULT_CHAT_MODEL = MODELS[0].value
 
 const SUGGESTIONS = [
   'Which power positions were built up this quarter?',

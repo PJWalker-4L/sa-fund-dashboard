@@ -459,6 +459,8 @@ export default function App() {
                 <AIInsightSummary
                   data={analysis.data}
                   isLoading={analysis.isLoading || refreshAnalysis.isPending}
+                  isError={analysis.isError}
+                  errorMessage={analysis.error instanceof Error ? analysis.error.message : undefined}
                   tickerNames={tickerNames}
                   onTickerClick={handleTickerClick}
                   onViewFull={() => handleTabChange('indicators')}

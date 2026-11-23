@@ -210,7 +210,10 @@ async def get_analysis():
         f"{curr_meta.get('accession_number', 'curr')}"
         f"__{(prev_meta or {}).get('accession_number', 'none')}"
     )
-    text, was_cached = await llm_analyzer.analyze_delta(delta, curr_meta, prev_meta or {})
+    current_holdings = curr_df.to_dict(orient="records")
+    text, was_cached = await llm_analyzer.analyze_delta(
+        delta, curr_meta, prev_meta or {}, current_holdings=current_holdings,
+    )
     return AnalysisResponse(analysis=text, cached=was_cached, filing_pair=filing_pair)
 
 
