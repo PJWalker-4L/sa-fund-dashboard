@@ -15,7 +15,6 @@ type Variant = 'insight' | 'strategy'
 const INSIGHT_SECTION_RE = /^([①②③④⑤])\s+(.+)$/
 const BULLET_RE = /^(?:[-•*·]|\d+\.)\s+/
 const STAT_RE = /^Shares:\s/
-const STRATEGY_LABELS = ['CONVICTION', 'GAPS', 'SIGNAL'] as const
 
 function parseInsightBlocks(text: string): MonoTextBlock[] {
   const blocks: MonoTextBlock[] = []
@@ -76,6 +75,25 @@ function normalizeStrategyText(text: string): string {
     .trim()
 }
 
+function isStrategyHeading(line: string): string | null {
+  const trimmed = line.trim()
+  if (!trimmed || BULLET_RE.test(trimmed) || trimmed.length > 80) return null
+
+  const markdown = trimmed.match(/^#{1,3}\s+(.+)$/)
+  if (markdown) return markdown[1].replace(/\*\*/g, '').trim()
+
+  const bold = trimmed.match(/^\*\*(.+)\*\*$/)
+  if (bold && bold[1].length <= 72) return bold[1].trim()
+
+  const labeled = trimmed.match(/^(CONVICTION|GAPS|SIGNAL):\s*(.*)$/i)
+  if (labeled) return labeled[1].toUpperCase()
+
+  const arrow = trimmed.match(/^▸\s*([^:]+):\s*(.*)$/)
+  if (arrow && arrow[1].trim().length <= 48) return arrow[1].trim()
+
+  return null
+}
+
 function parseStrategyBlocks(text: string): MonoTextBlock[] {
   const blocks: MonoTextBlock[] = []
   const normalized = normalizeStrategyText(text)
@@ -88,27 +106,14 @@ function parseStrategyBlocks(text: string): MonoTextBlock[] {
       continue
     }
 
-    const md = line.match(/^\*\*([A-Z][A-Z\s]+)\*\*(?:\s+(.*))?$/)
-    if (md) {
-      pushStrategySection(blocks, md[1].trim(), md[2]?.trim() || undefined)
+    if (BULLET_RE.test(line.trim())) {
+      blocks.push({ kind: 'bullet', text: line.trim().replace(BULLET_RE, '') })
       continue
     }
 
-    const arrow = line.match(/^▸\s*([A-Z][A-Z\s]+):\s*(.*)$/)
-    if (arrow) {
-      pushStrategySection(blocks, arrow[1].trim(), arrow[2]?.trim() || undefined)
-      continue
-    }
-
-    const labelMatch = line.match(/^(CONVICTION|GAPS|SIGNAL):\s*(.*)$/i)
-    if (labelMatch) {
-      pushStrategySection(blocks, labelMatch[1].toUpperCase(), labelMatch[2]?.trim() || undefined)
-      continue
-    }
-
-    const bare = line.trim().toUpperCase()
-    if ((STRATEGY_LABELS as readonly string[]).includes(bare)) {
-      pushStrategySection(blocks, bare)
+    const heading = isStrategyHeading(line)
+    if (heading) {
+      pushStrategySection(blocks, heading)
       continue
     }
 

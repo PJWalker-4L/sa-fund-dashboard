@@ -45,11 +45,15 @@ Mixed-expression tickers: {mixed_tickers}
 Position changes ({n} positions, UNCHANGED excluded):
 {delta_csv}
 
+Instrument continuity (authoritative — overrides any wording that sounds like a full exit):
+{continuity}
+
 Write ONLY these two sections. US English. Complete sentences. No nested clauses.
 
 ④ KEY MOVES vs. {prev_label}
 Provide 3–5 bullet points. Each bullet: ticker, instrument type, notional ($ from the table), and one sentence on why it matters.
 Use ONLY tickers and instruments listed in the position changes table — do not invent or assume holdings.
+A CLOSED row closes only that instrument. If continuity says the ticker still holds another instrument, say the fund closed that one instrument and kept the other. Never write "dropped", "eliminated", or "exited" the company.
 Prioritize the largest QoQ value changes (NEW, CLOSED, INCREASED, DECREASED) by notional.
 Do NOT include tickers from section ② (stacked long: {stacked_conviction}).
 Do NOT describe mixed-expression tickers ({mixed_tickers}) as bullish, growing interest, or long conviction unless the table shows net long legs only.
@@ -92,15 +96,17 @@ WHY SA SHORTS SEMICONDUCTORS (use this logic when explaining large put books —
 - Selective semi longs (e.g. SNDK storage, small INTC foundry bet) coexist with puts — SA is NOT anti-semiconductor entirely; it is short the consensus trade while long specific bottleneck sub-layers (storage, US foundry) it views as mispriced.
 
 WRITING STYLE:
-- Write for a professional buy-side / hedge fund audience. Sound like a senior analyst briefing PMs — not a summary bot.
-- Never stop at labels ("bearish on semis"). Always explain WHY the positioning is rational given SA's thesis.
-- When citing puts or large shorts, add 2–3 sentences of causal reasoning (valuation, consensus positioning, capex rotation, bottleneck shift).
-- Use concrete tickers and $ notionals. Connect portfolio facts to thesis logic.
+- Write for a professional buy-side audience. Sound like a senior analyst briefing PMs — not a summary bot.
+- Never stop at labels ("bearish on semis"). Explain WHY the positioning is rational given SA's thesis.
+- Use concrete tickers and $ notionals from the filing. Do not invent positions.
 
-Write exactly 3 labeled paragraphs, max 380 words total:
-▸ CONVICTION: Which layer(s) dominate by AUM weight? Is this consistent with SA's known thesis priorities? If puts are large, explain WHY SA would express that bearish view — not just that it exists.
-▸ GAPS: Which layers are absent or underweight vs. the SA paper's bottleneck order? What does that signal about saturation vs. opportunity?
-▸ SIGNAL: Forward-looking implication — where is the bottleneck tightening next, and how does the put book vs. long book express that view?\
+OUTPUT FORMAT (required):
+- Write 3 to 5 short sections. Max 320 words total.
+- Each section starts with its own heading line: ## Heading
+- Headings are specific to THIS filing's findings. Invent them from the data (e.g. "Calls dominate the book", "Bloom Energy is the power bet"). Do NOT use the labels CONVICTION, GAPS, or SIGNAL.
+- Under each heading, 2–4 bullet lines starting with "- ". One sentence per bullet. No long paragraphs.
+- Cover, across the sections: where notional actually sits, what is missing vs. the bottleneck stack, and what the mix implies next.
+- Output only the sections. No preamble.\
 """
 
 _STRATEGY_TEMPLATE = """\
@@ -119,10 +125,14 @@ TOP PUT POSITIONS (bearish expression):
 TOP HOLDINGS BY VALUE (instrument type shown):
 {top_holdings}
 
-Write CONVICTION / GAPS / SIGNAL for a professional audience.
+Instrument continuity vs prior quarter (authoritative):
+{continuity}
+
+Write the commentary in the required ## heading + bullet format.
 - Distinguish SHARE/CALL (bullish) from PUT (bearish).
-- When discussing put books (especially SMH, NVDA, ORCL, AVGO, AMD, MU, TSM): explain the investment rationale — why SA would short the consensus semiconductor trade while staying long power/infrastructure. Do not merely state "bearish on semis."
-- Each paragraph must contain at least one because/therefore chain linking positions to thesis logic.\
+- Headings must come from this filing's numbers, not from a fixed template.
+- If continuity says a share was closed but calls remain, describe that as a shift from equity to calls — not as a full exit and not as a brand-new bet that ignores the closed shares.
+- When a put book is large, one section should explain why that short fits the thesis — using only tickers that appear above.\
 """
 
 
@@ -390,6 +400,41 @@ def _build_deterministic_insight(
     return body
 
 
+def instrument_continuity(delta: dict, current_holdings: list[dict]) -> str:
+    """Tickers whose closed instrument is not the whole name — another leg is still in the filing."""
+    remaining: dict[str, dict[str, float]] = defaultdict(lambda: defaultdict(float))
+    for h in current_holdings:
+        ticker = h.get("ticker")
+        if not ticker:
+            continue
+        kind = normalize_put_call(h.get("putCall")) or "SHARE"
+        remaining[ticker][kind] += float(h.get("value") or 0)
+
+    closed: dict[str, set[str]] = defaultdict(set)
+    for pos in delta.get("closed", []):
+        ticker = pos.get("ticker")
+        if not ticker:
+            continue
+        closed[ticker].add(normalize_put_call(pos.get("putCall")) or "SHARE")
+
+    notes: list[str] = []
+    for ticker in sorted(closed):
+        still = remaining.get(ticker)
+        if not still:
+            continue
+        closed_kinds = ", ".join(sorted(closed[ticker]))
+        kept = ", ".join(
+            f"{kind} {_fmt_notional(val)}" for kind, val in sorted(still.items())
+        )
+        notes.append(
+            f"{ticker}: closed {closed_kinds} vs prior quarter; still holds {kept}. "
+            f"Do not describe {ticker} as fully exited."
+        )
+    if not notes:
+        return "No ticker kept another instrument after a close."
+    return "\n".join(notes)
+
+
 def _delta_to_csv(delta: dict) -> str:
     rows = ["Ticker,Issuer,Type,Status,Δ%,Value($k)"]
     for status in ("new", "closed", "increased", "decreased"):
@@ -473,6 +518,7 @@ async def analyze_delta(
         mixed_tickers=mixed,
         put_notional=_fmt_notional(mix_parts["puts"]),
         delta_csv=_delta_to_csv(delta),
+        continuity=instrument_continuity(delta, holdings_for_mix),
     )
 
     prefix = _build_deterministic_insight(mix_parts, stacked_rows, mixed_rows, curr_label, prev_label)
@@ -491,11 +537,12 @@ async def analyze_delta(
 async def analyze_strategy(
     holdings: list[dict],
     curr_meta: dict,
+    continuity: str = "No ticker kept another instrument after a close.",
 ) -> tuple[str, bool]:
     filing_key = f"strategy__{curr_meta.get('accession_number', 'curr')}"
 
     cached = get_cached_strategy(filing_key)
-    if cached:
+    if cached and "##" in cached:
         return cached, True
 
     layer_totals: dict[str, float] = defaultdict(float)
@@ -528,15 +575,22 @@ async def analyze_strategy(
         layer_table="\n".join(rows),
         put_book="\n".join(put_lines),
         top_holdings="\n".join(top_lines),
+        continuity=continuity,
     )
 
     try:
-        text = await _call(prompt, _STRATEGY_SYSTEM, max_tokens=900)
+        text = (await _call(prompt, _STRATEGY_SYSTEM, max_tokens=1200)).strip()
     except httpx.HTTPError:
         text = (
             "Strategy commentary unavailable — check LLM_PROVIDER, GROQ_MODEL, and API keys in .env.local."
         )
-    save_strategy(filing_key, text)
+    if "##" not in text and "Strategy commentary unavailable" not in text:
+        text = (
+            "Strategy commentary unavailable — the model did not return headed sections. "
+            "Refresh to try again."
+        )
+    else:
+        save_strategy(filing_key, text)
     return text, False
 
 

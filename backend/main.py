@@ -349,7 +349,7 @@ async def get_alpha():
 @app.get("/api/strategy", response_model=StrategyResponse)
 async def get_strategy():
     try:
-        curr_df, curr_meta, _, _ = _get_data()
+        curr_df, curr_meta, prev_df, _ = _get_data()
     except Exception as e:
         raise _http_503("SEC data fetch failed", e)
 
@@ -364,7 +364,12 @@ async def get_strategy():
         for _, row in curr_df.iterrows()
     ]
 
-    text, was_cached = await llm_analyzer.analyze_strategy(holdings_dicts, curr_meta)
+    delta = delta_detector.compute_delta(curr_df, prev_df)
+    text, was_cached = await llm_analyzer.analyze_strategy(
+        holdings_dicts,
+        curr_meta,
+        continuity=llm_analyzer.instrument_continuity(delta, holdings_dicts),
+    )
     filing_key = f"strategy__{curr_meta.get('accession_number', 'curr')}"
     return StrategyResponse(commentary=text, cached=was_cached, filing_key=filing_key)
 
